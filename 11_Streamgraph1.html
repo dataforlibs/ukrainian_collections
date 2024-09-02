@@ -74,7 +74,7 @@ limitations under the License.
   .x-axis, .x-axis-context, .y-axis {
     font-size: .8em;
   }
-  #tabs-1{
+  #tabs-1,#tabs-2{
 max-height: 39rem;
 overflow-y:auto;
   }
@@ -476,10 +476,10 @@ ids["key"]="tabs-1";
              }
     console.log(ids);         
  var htm="";      
- if  (ids["ids"].length<10) {
+ if  (ids["ids"].length<20) {
   var nn=ids["ids"].length;
  }    else{
-  var nn=10;
+  var nn=20;
  }
  if (ids["key"]=="tabs-1") {
   var ur="https://dataforlibs.github.io/ukrainian_collections/data_shm/";
@@ -497,6 +497,7 @@ for (var m=0; m<nn; m++) {
         "type":"GET",
         //"data": { fields: "items, professions, talents, progression"},
         //"dataType":"json",
+        async: false,
         //"contentType": "application/x-www-form-urlencoded;charset=utf-8",
         success:function(data_shm){
           console.log(JSON.parse(data_shm));
