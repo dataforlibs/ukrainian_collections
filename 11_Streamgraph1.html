@@ -1,0 +1,2678 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 SAS Institute Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <!-- Import D3.js -->
+  <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+
+  <!-- Import lodash.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+  <script   src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+
+  <!-- Import utilities  -->
+
+  <script type="text/javascript" srs="https://sassoftware.github.io/sas-visualanalytics-thirdpartyvisualizations/util/messagingUtil.js"></script>
+
+  <script type="text/javascript" src="contentUtil.js"></script>
+  <script src='https://unpkg.com/@turf/turf/turf.min.js'></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/motion-ui/1.2.3/motion-ui.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.0/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/css/foundation-prototype.min.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/foundicons/3.0.0/foundation-icons.css" rel="stylesheet" type="text/css">
+<script src="https://code.jquery.com/ui/1.14.0/jquery-ui.js"></script>
+<script src="getSheetData.js" type="text/javascript" defer></script>
+  
+<style type="text/css">
+  html, body, #streamgraph {
+    float: left;
+   /* min-width: 500px;*/
+    min-height: 300px;
+    width: 100%;
+    height: 35%;
+   
+  }
+
+  #streamgraph {
+    /*margin: 50 50 50 50;*/
+    margin:0 1% 0;
+  
+  }
+  #comment{
+
+    /*text-align:center;*/
+  }
+#main_map {
+    float: left;
+    min-width: 500px;
+    min-height: 650px;
+    border-width: 1px;
+    outline: thin solid black;
+  }
+
+  text {
+    font-family: Verdana, sans-serif;
+  }
+
+  .x-axis, .x-axis-context, .y-axis {
+    font-size: .8em;
+  }
+  #tabs-1{
+max-height: 39rem;
+overflow-y:auto;
+  }
+  #main_map {   height: 42rem;  margin:0 3% 0;}
+  #map {  height: 42rem;  margin:0 3% 0;}
+  .x-label {
+    font-size: .9em;
+    text-anchor: Middle;
+    dominant-baseline: ideographic;
+  }
+
+  .y-label {
+    font-size: .9em;
+    dominant-baseline: hanging;
+  }
+
+  .legend-title {
+    font-size: .9em;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: hanging;
+  }
+
+  .legend-text {
+    font-size: .8em;
+    dominant-baseline: central;
+  }
+
+  .legend-rect {
+    stroke-width: 1;
+  }
+
+  .zoom {
+    cursor: move;
+    fill: none;
+    pointer-events: all;
+  }
+H1{
+    text-align:center;
+}
+  .data-path-context {
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<H1>Украдені скарби</H1>
+<div class="grid-x">
+  <div class="small-1 columns"></div>
+  <div class="small-2 columns"><button class="button hollow" id="zoom_in"> + </button><button class="button hollow" id="zoom_out"> - </button></div>
+  <div class="small-9 columns"><div id="comment"></div>
+</div>
+</div>
+
+<div class="grid-x">
+  <div id="map" class="small-6 columns"></div>
+
+<div class="small-3 columns">
+
+    <div id="myModal">
+  <br>Ласкаво просимо до колекції "Украдені скарби". Ця колекція створена з ресурсів, зібраних з російських музеїв, які привласнили ресурси, знайдені на території України. Ми зберігаємо мову цих колекцій, оскільки всі поля метаданих (за рідкісним винятком полів, доданих українськими журналістами) були опубліковані російською мовою.
+
+<p>Колекція зберігається в каталозі з інтерактивним просторово-часовим інтерфейсом, який дозволяє користувачам досліджувати місця в різні періоди часу та в різних імперіях. 
+</p> 
+  <p>Налаштуйте маркери масштабування часу, щоб вибрати періоди часу, які вас цікавлять.
+Натисніть будь-яке коло на карті, щоб отримати ресурси про цю локацію. Кола різняться за розміром і пов’язаними з ними документами залежно 
+від діапазону часу, вибраного на часовій шкалі нижче.
+</p>
+</div>
+<div id="tabs">
+  <ul>
+    <li><a href="#tabs-1">Державний історичний музей Росії</a></li>
+    <li><a href="#tabs-2">Ермітаж</a></li>
+  </ul>
+  <div id="tabs-1">
+     </div>
+  <div id="tabs-2">
+     </div>
+  
+
+
+</div>
+
+</div>
+</div>
+</div>
+
+<div id="timeline"></div>
+
+
+<script>
+  var groupedIDs_herm_dic={};
+  var groupedIDs_shm_dic={};
+  var groupedData_herm=[];
+  var groupedData_shm=[];
+var S;
+let X_SCALE; // Linear time scale for chart area
+let X_SCALE_2; // Linear time scale for small chart area
+var projection,json0,h,w;
+var filts_herm,filts_shm,groupedData_herm,groupedData_shm,herm_data,shm_data,coordinates=[],g,transform,
+zoom1 = d3.zoom()
+      .scaleExtent([1, 20]);;
+var tooltip = d3.select("body")
+  .append("div")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .text("");
+    //var transform = d3.event.transform;   
+function draw_map() {
+  w = window.innerWidth*0.46;
+  //$("#map").width();
+    h = $("#map").height();
+   //getElementById("map").innerWidth=window.innerWidth*0.46;
+    d3.select("#map").html("");
+    var svg = d3.select("#map").append("svg").attr("id","main_map").attr("width",w);
+    
+   /* var projection = d3.geoMercator()
+      .scale(width / 2 / Math.PI)
+      //.scale(100)
+      .translate([width / 2, height / 2])
+
+    var path = d3.geoPath()
+      .projection(projection);
+    
+    var url = "world-110m.geojson";
+    d3.json(url, function(err, geojson) {
+      svg.append("path")
+        .attr("d", path(geojson))
+    })*/
+    var url = "geoBoundaries-UKR-ADM0_simplified.geojson";
+    //Load in GeoJSON data
+d3.json(url).then(function(json) {
+  //console.log(json.features);
+  json0 = json;
+  json.features = json.features.map(function(feature) {
+    return turf.rewind(feature, {
+      reverse: true
+    });
+  });
+
+  //d3.geoAlbers()
+  //.scale(width / 1.5 / Math.PI)
+    //.translate([width / 2, height / 2])
+
+  projection =d3.geoMercator().fitSize([w,h], json);
+   // .scale(150);
+  //  .rotate([-180,0]);
+  //d3.geoMercator().fitSize([w,h*0.9], json);//.translate([width*0.2, height*0]);
+  // translate the map to w/2 and h/2 and scale it to 500 
+  // to see the map properly
+
+  //Define path generator
+  var path = d3.geoPath()
+    .projection(projection);
+    g = svg.append("g");
+  //Bind data and create one path per GeoJSON feature
+  g.selectAll("path")
+    .data(json.features)
+    .enter()
+    .append("path")
+    .attr("d", path)
+    .attr("fill", "grey")
+    .attr("fill-opacity", 0.2)
+    .attr("stroke", "grey");
+
+
+      zoom1.on('zoom', function() {
+          g.selectAll('path')
+           .attr('transform', d3.event.transform);
+           //console.log(d3.event.transform);
+           //add zooming and panning for circles
+           //var s = d3.event.transform.rescaleX(X_SCALE);
+           //console.log(s);
+          // call(d3.zoom().on("zoom", function () {
+            transform = d3.event.transform;   
+       g.selectAll(".circles").attr("transform", d3.event.transform);
+       //var rad=Number(g.selectAll(".circles").attr("class").split(" ")[1].replace("r_",""));
+       for (var t=0; t<g.selectAll(".circles")._groups[0].length; t++) {
+        var rad=Number(d3.select(g.selectAll(".circles")._groups[0][t]).attr("class").split(" ")[1].replace("r_",""));
+        if (rad<18) {
+        d3.select(g.selectAll("circle")._groups[0][t]).attr("r",rad/d3.event.transform.k).style("stroke-width","0.2px");
+       }else {
+        d3.select(g.selectAll("circle")._groups[0][t]).attr("r",rad/d3.event.transform.k).style("stroke-width","0.05px");
+
+       }}
+       //console.log(Number(d3.select(g.selectAll(".circles")._groups[0][10]).attr("class").split(" ")[1].replace("r_","")));
+       //console.log(d3.event.transform.k);
+        //g.selectAll("circle").attr("r", function(d) { return Math.log(d.r+1)*3/;})
+   // }))
+           //d3.select("#map").html(JSON.stringify(groupedData_herm)+JSON.stringify(groupedData_shm));
+           //draw_circles(groupedData_herm,groupedData_shm,herm_data,shm_data)
+});
+d3.select("#main_map").call(zoom1)
+    .on("wheel.zoom", null).on("click.zoom", null);
+
+
+//.on("click.zoom", null);
+//let g = svg.append("g");
+//d3.selectAll("#zoom-section i").on("click", zoomClick);
+//g.append("circle").attr("r", 50).attr("fill", "red");
+d3.select("#zoom_in").on("click", function() {
+  zoom1.scaleBy(svg.transition().duration(750), 1.2);
+});
+d3.select("#zoom_out").on("click", function() {
+  zoom1.scaleBy(svg.transition().duration(750), 0.8);
+});;
+
+svg.call(zoom1);
+    
+});
+    
+}
+function draw_circles(groupedData_herm,groupedData_shm,herm_data,shm_data){
+  /*groupedData_herm = d3.nest() 
+            .key(function (d) { return d.coords; }) 
+            .rollup(function(cities) {
+    return cities.length;
+    })
+            .entries(filts_herm); 
+*/
+var filts_herm0=herm_data.filter(function(r){ if (r.dates>X_SCALE.domain()[0] && r.dates<X_SCALE.domain()[1]) return r;});
+  var  filts_shm0=shm_data.filter(function(r){ if (r.dates>X_SCALE.domain()[0] && r.dates<X_SCALE.domain()[1]) return r;});
+   var groupedIDs_herm = d3.nest() 
+            .key(function (d) { return d.coords; }) 
+            //.key(function (d) { return d.id; }) 
+            /*.values(function(d) {
+    return d.id;
+    })*/
+            .entries(filts_herm0); 
+            groupedIDs_herm_dic={};
+     for (var i=0; i<groupedIDs_herm.length; i++){
+      groupedIDs_herm_dic[groupedIDs_herm[i]["key"]]=[];
+      for (var y=0; y<groupedIDs_herm[i]["values"].length; y++){
+        groupedIDs_herm_dic[groupedIDs_herm[i]["key"]].push(groupedIDs_herm[i]["values"][y]["id"]);
+      }
+     }       
+     var groupedIDs_shm = d3.nest() 
+            .key(function (d) { return d.coords; }) 
+            .entries(filts_shm0); 
+            groupedIDs_shm_dic={};
+     for (var i=0; i<groupedIDs_shm.length; i++){
+      groupedIDs_shm_dic[groupedIDs_shm[i]["key"]]=[];
+      for (var y=0; y<groupedIDs_shm[i]["values"].length; y++){
+        groupedIDs_shm_dic[groupedIDs_shm[i]["key"]].push(groupedIDs_shm[i]["values"][y]["id"]);
+      }
+     }       
+  //console.log(groupedIDs_herm_dic, groupedIDs_shm_dic,coordinates,filts_herm,groupedData_herm,herm_data,groupedData_shm,shm_data,X_SCALE.domain());
+  //projection =d3.geoMercator().fitSize([w,h*0.9], json0);
+d3.selectAll(".circles").remove();
+/*SHM: "#d38506",
+      Hermitage: "#FFC546",
+      "#21b9b7",
+      "#4141e0",*/
+
+      
+ var data_herm=[];     
+for (var i=0; i<groupedData_herm.length; i++) {
+  //try{
+    if (coordinates["labels_herm"][groupedData_herm[i].key].length>1) {
+            var tt=coordinates["labels_herm"][groupedData_herm[i].key][0]+", "+coordinates["labels_herm"][groupedData_herm[i].key][1];
+        } else {
+if (coordinates["labels_herm"][groupedData_herm[i].key][0].toString()!="nan") {
+    var tt=coordinates["labels_herm"][groupedData_herm[i].key][0];
+} else {
+    var tt="Неизвестно";
+}
+        }   // var tt=coordinates["labels_herm"][groupedData_herm[i].key][0];
+    var ccs=coordinates["coords_herm"][groupedData_herm[i].key];
+  var coordinates1 = projection([+ccs[1],+ccs[0]]);
+  //console.log(coordinates1);
+  if (coordinates1[0].toString()!="NaN"){
+      
+  
+  var temp={"lon":+coordinates1[0],"lat":+coordinates1[1],"label":tt,"r":groupedData_herm[i].value,"color":"#21b9b7","key":groupedData_herm[i].key};
+  data_herm.push(temp);
+  } else {
+   // console.log(ccs);
+  }
+
+}
+console.log(groupedData_herm);
+/*
+ d3.select("#main_map").selectAll("circles")//.append("circle")
+    .data(data_herm)
+    .enter()
+    .append("circle")
+            .attr("class","circles")
+            .attr("cx",function(d) { return d.lon;})
+            .attr("cy", function(d) { return d.lat;})
+            .attr("r", function(d) { return Math.log(d.r+1)*3;})
+            .style("fill", "#21b9b7")
+            .style("fill-opacity", 0.2)
+            .style("stroke", "black")
+            .style("stroke-width", "0.5px")
+            .on("mouseover", function(d) {
+
+               // console.log(coordinates["labels_shm"][groupedData_shm[i].key][0]);
+              tooltip.html("d.label")
+              .style("visibility", "visible");
+            })
+            .on("mousemove", function(){return tooltip.style("top", (event.pageY-8)+"px").style("left",(event.pageX+8)+"px");})
+  .on("mouseout", function(){return tooltip.style("visibility", "hidden");});
+       */
+ /*   d3.select("#main_map").append("circle")
+            .attr("class","circles")
+            .attr("cx", +coordinates1[0])
+            .attr("cy", +coordinates1[1])
+            .attr("r", Math.log(groupedData_herm[i].value+1)*3)
+            .style("fill",  "#21b9b7")
+            .style("fill-opacity", 0.2)
+            .style("stroke", "black")
+            .style("stroke-width", "0.5px")
+            .on("mouseover", function() {
+                
+              tooltip.html(tt)
+              .style("visibility", "visible");
+            })
+            .on("mousemove", function(){return tooltip.style("top", (event.pageY-8)+"px").style("left",(event.pageX-8)+"px");})
+  .on("mouseout", function(){return tooltip.style("visibility", "hidden");});
+*/
+
+  //add tooltip
+ 
+       
+          //var coordinates1 = projection([35.08,50.46764]);
+
+//console.log(coordinates["labels_shm"],groupedData_shm);
+//var data_shm=[];
+console.log(groupedData_shm);
+for (var i=0; i<groupedData_shm.length; i++) {
+ 
+
+        if (coordinates["labels_shm"][groupedData_shm[i].key].length>1) {
+            var tt=coordinates["labels_shm"][groupedData_shm[i].key][0]+", "+coordinates["labels_shm"][groupedData_shm[i].key][1];
+        } else {
+
+            if (coordinates["labels_shm"][groupedData_shm[i].key][0].toString()!="nan") {
+    var tt=coordinates["labels_shm"][groupedData_shm[i].key][0];
+} else {
+    var tt="Неизвестно";
+}
+        }
+    var ccs=coordinates["coords_shm"][groupedData_shm[i].key];
+    //console.log(ccs,groupedData_shm[i].key,tt);
+  var coordinates1 = projection([+ccs[1],+ccs[0]]);
+  //console.log(coordinates1.toString());
+  if (coordinates1[0].toString()!="NaN"){
+  var temp={"lon":+coordinates1[0],"lat":+coordinates1[1],"label":tt,"r":groupedData_shm[i].value,"color":"#4141e0","key":groupedData_shm[i].key};
+  data_herm.push(temp);
+  } else {
+   // console.log(ccs,groupedData_shm[i].key, coordinates["labels_shm"][groupedData_shm[i].key],coordinates["coords_shm"][groupedData_shm[i].key]);
+  }
+
+
+}
+  console.log(data_herm);
+//zoomTargetElement.attr(‘transform’, transform.toString());
+
+    g.selectAll("circle")//.append("circle")
+    .data(data_herm)
+    .enter()
+    .append("circle")
+            .attr("class",function(d) { return "circles r_"+(Math.log(d.r+1)*3).toString()})
+            .attr("cx",function(d) { return d.lon;})
+            .attr("cy", function(d) { return d.lat;})
+            .attr("r", function(d) { return Math.log(d.r+1)*3;})
+            .style("fill", function(d) { return d.color;})
+            .style("fill-opacity", 0.2)
+            .style("stroke", "black")
+            .style("stroke-width", "0.5px")
+            //.attr("transform", d3.event.transform)
+            .on("mouseover", function(d) {
+             //groupedIDs_shm_dic
+             //console.log(d);
+            /* if (d.key.split("_")[0]=="SHM") {
+              console.log(groupedIDs_shm_dic[d.key]);
+
+             } else {
+              console.log(groupedIDs_herm_dic[d.key]);
+
+             }*/
+              //console.log(coordinates["labels_shm"][groupedData_shm[i].key][0]);
+              tooltip.html(d.label+" - "+d.r.toString())
+              .style("visibility", "visible");
+            })
+            .on("mousemove", function(){return tooltip.style("top", (event.pageY-8)+"px").style("left",(event.pageX+8)+"px");})
+  .on("mouseout", function(){return tooltip.style("visibility", "hidden");})
+  .on("click", function(d) {
+
+             var ids={};
+             if (d.key.split("_")[0]=="SHM") {
+              ids["ids"]=groupedIDs_shm_dic[d.key];
+ids["key"]="tabs-1";
+             } else {
+              ids["ids"]=groupedIDs_herm_dic[d.key];
+              ids["key"]="tabs-2";
+
+             }
+    console.log(ids);         
+ var htm="";      
+ if  (ids["ids"].length<10) {
+  var nn=ids["ids"].length;
+ }    else{
+  var nn=10;
+ }
+ if (ids["key"]=="tabs-1") {
+  var ur="https://dataforlibs.github.io/ukrainian_collections/data_shm/";
+ } else{
+  var ur="https://dataforlibs.github.io/herm_collection/";
+ }
+for (var m=0; m<nn; m++) {
+
+
+
+   (function(index){
+   // console.log("https://dataforlibs.github.io/ukrainian_collections/data_shm/"+ids["ids"][index].toString()+".json");
+      $.ajax({
+       "url":ur+ids["ids"][index].toString()+".json",
+        "type":"GET",
+        //"data": { fields: "items, professions, talents, progression"},
+        //"dataType":"json",
+        //"contentType": "application/x-www-form-urlencoded;charset=utf-8",
+        success:function(data_shm){
+          console.log(JSON.parse(data_shm));
+       },
+       cache: false,
+
+       error:function(XMLHttpRequest, textStatus, errorThrown) { 
+        htm+=ids["ids"][index].toString()+" ";
+     // try{
+       // console.log(JSON.parse('"'+eval("'"+XMLHttpRequest["responseText"].toString().replaceAll("'",'"')+"'").toString()+'"')); 
+       var str0=XMLHttpRequest; 
+var text0=eval('(' + str0["responseText"] + ')');
+console.log(text0);
+htm +="<img style='max-width: 100px; max-height: 100px;' src='"+text0["img"]+"'>";
+htm +=text0["title"];
+htm +="<br>";
+//console.log(htm);
+   if (index==nn-1) {
+
+d3.select("#"+ids["key"]).html(htm);
+}
+  
+    /*  } catch(error){
+        console.log("Error: " +error); 
+
+    }     */  
+   }});
+   })(m);
+   
+  
+}
+
+//console.log(htm);
+//d3.select("#"+ids["key"]).html(htm);
+
+
+            });
+
+  if   (zoom1!="undefined"){
+      //  zoom.scale(svg.transition().duration(750), 1);
+      //  d3.zoomIdentity.scale(1);
+       // svg.call(zoom.transform,d3.zoomIdentity.scale(1));
+       g.transition().duration(750).call(zoom1.transform, d3.zoomIdentity);
+
+     }
+     //console.log(transform,d3.event);
+       if (typeof transform!="undefined"){
+        //console.log(transform);
+        g.selectAll("circle").attr("transform", d3.event.transform);
+        //g.selectAll("circle").attr("r", function(d) { return Math.log(d.r+1)*3/;})
+       }
+     
+          //var coordinates1 = projection([35.08,50.46764]);
+}
+
+
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+document.addEventListener("DOMContentLoaded", function() {
+  /******************************************************* Declare variables *******************************************************/
+  /*fetch('labels.json')
+  .then(res => res)
+    .then(json => {
+        console.log(json);*/
+  d3.json("labels.json").then(function(coordinates0) {  
+    //console.log(error9, coordinates0);
+    coordinates=coordinates0;
+
+d3.csv("SHM_final_short.csv").then(function(shm_data0) {
+  //console.log(er6,shm_data0);
+  
+  shm_data=shm_data0.map(function(s){
+    var year=Number(s["dates"].split(".")[0]);
+
+    //s["dates"]=new Date(Number(s["dates"].split(".")[0]),0,1); 
+    s["dates"] = new Date(Date.UTC(year, 0, 1));
+    if (year>=0 && year<=99) {
+    s["dates"].setUTCFullYear(year,0,1);
+    //console.log(s["dates"].getFullYear());
+    }
+  
+  return s;
+
+});
+  //console.log(shm_data);
+  d3.csv("Hermitage_final_short.csv").then(function(herm_data0) {
+    herm_data=herm_data0.map(function(s){
+     // s["dates"]=new Date(Number(s["dates"].split(".")[0]),0,1); 
+     var year=Number(s["dates"].split(".")[0]);
+
+    //s["dates"]=new Date(Number(s["dates"].split(".")[0]),0,1); 
+    s["dates"] = new Date(Date.UTC(year, 0, 1));
+    if (year>=0 && year<=99) {
+    s["dates"].setUTCFullYear(year,0,1);
+    //console.log(s["dates"].getFullYear());
+    }
+  
+  return s;
+ 
+});
+  
+   
+            //d3.select("#map").html(JSON.stringify(groupedData_herm)+JSON.stringify(groupedData_shm));
+    
+d3.csv('stream.csv')
+	.then(function(data0) {
+	   // console.log(data0);
+var dat=[];
+	    data0.map(function(d){ 
+       //s["dates"]=new Date(Number(s["dates"].split(".")[0]),0,1); 
+
+       ///start fixing here!
+    d.dates1 = new Date(Date.UTC(+d.dates, 0, 1));
+    if (d.dates>=0 && d.dates<=99) {
+    d.dates1.setUTCFullYear(+d.dates,0,1);
+    //console.log(s["dates"].getFullYear());
+    }
+  
+    
+      dat.push([+d.dates1,"Ермітаж",+d.Hermitage]); 
+      dat.push([+d.dates1,"Державний історичний музей Росії",+d.SHM]);
+    });
+//console.log(dat);
+  // Static data variables
+  const SVG_ID = "streamgraph"; // ID of SVG element
+  const SAMPLE_MESSAGE = {
+    version: "1",
+    resultName: "dd510",
+    rowCount: dat.length,
+    availableRowCount: dat.length,
+    data: dat,
+    columns: [
+      {
+        name: "bi507",
+        label: "",
+          type: "date",
+          usage: "quantitative",
+        format: {
+          name: "MMDDYY",
+          width: 8,
+          precision: 0,
+          formatString: "MMDDYY8"
+        }
+      },
+      {
+        name: "bi508",
+        label: "Історичний час",
+        type: "string"
+      },
+      {
+        name: "bi511",
+        label: "",//Предмети колекції (кількість)
+        //type: "string"//,
+        type: "number",
+        usage: "quantitative",
+        aggregation: "sum",
+        format: {
+          name: "BEST",
+          width: 12,
+          precision: 0,
+          formatString: "BEST12."
+        }
+      }
+    ]
+  }; // Sample data message to render graph outside of VA for debugging
+//console.log(SAMPLE_MESSAGE.data);
+//    d3.csv("stream.csv", function(da){
+//SAMPLE_MESSAGE.data.push(["01/01/"+da["dates"],"Hermitage",da["Hermitage"]]);
+//SAMPLE_MESSAGE.data.push(["01/01/"+da["dates"],"SHM",da["SHM"]]);
+ //console.log(SAMPLE_MESSAGE);
+  //  });
+  //  console.log(SAMPLE_MESSAGE);
+    
+  // Dynamic data variables
+  let VA_MESSAGE; // Result name required to send messages back to VA
+  let VA_RESULT_NAME; // Result name required to send messages back to VA
+  let METADATA; // Metadata to be parsed from VA data message
+  let CATEGORIES; // Categories present in DATA
+  let DATA; // Data to be parsed from VA data message
+  let STACK; // Stack generator to create stacked dataset
+  let STACKED_DATA; // Data arranged in stack to create streamgraph
+  let OLD_STACKED_DATA; // Previous data
+let LAST_TRANSITION_END =new Date("1901-01-01 00:00:00");
+//Date.now(); // Time of last transition used to time transition callbacks
+
+  // Static dimension variables
+  const TRANS_TIME = 500; // Duration of transitions
+  const VERT_PAD = 5; // Vertical padding between elements
+  const Y_AXIS_PAD = 2; // Padding between y-axis and chart area (prevent bar stroke overlapping axis)
+  const RIGHT_AXIS_PAD = 5; // Padding on right axis to give user space to release brush event
+  const X_TICK_PAD = 10; // Padding between x tick labels to help space them out
+  const CONTEXT_HEIGHT = 75; // Height of context graph at bottom
+
+  // Dynamic dimension variables
+  let WIDTH; // Width of SVG element
+  let HEIGHT; // Height of SVG element
+  let CHART_WIDTH; // Width of chart area for bars
+  let CHART_HEIGHT; // Height of chart area for bars
+  let OLD_CHART_HEIGHT; // Previous chart height
+  let Y_AXIS_WIDTH; // Width of y-axis
+  let X_AXIS_HEIGHT; // Height of x-axis
+  let X_LABEL_HEIGHT; // Height of x-axis label
+  let Y_LABEL_HEIGHT; // Height of y-axis label
+  let Y_TICK_HEIGHT; // Height of y-ticks texts
+  let X_TICK_MAX_WIDTH = 10; // Maximum pixel width allowed for x-tick texts
+
+  // Selection and d3 variables
+  let SVG; // SVG selection
+ 
+  let X_SCALE_CONTEXT; // Linear time scale context area
+  let Y_SCALE; // Linear scale for chart area path heights
+  let OLD_Y_SCALE; // Previous y-scale
+  let Y_SCALE_CONTEXT; // Linear scale for context area path heights
+  let X_LABEL; // X label data-join
+  let Y_LABEL; // Y label data-join
+  let X_AXIS; // X axis group data-join
+  let X_AXIS_CONTEXT; // Context x axis group data-join
+  let Y_AXIS; // Y axis group data join
+  let BRUSH; // Brush data-join
+  let ZOOM; // Zoom data-join
+  let G_CLIP; // Clip group selection - must tether clipPath to absolutely positioned group,
+  // otherwise clipping area will inherit transforms of object it is tethered to
+  let G_CHART_AREA; // Chart area group selection
+  let AREA; // Area generator to create paths from stack
+  let OLD_AREA; // Previous area generator
+  let CLIP_PATH; // Clip path data-join to prevent overflow from zoom/brush
+  let CLIP_PATH_RECT; // Clip path rect data-join
+  let DATA_PATHS; // Data paths data-join
+  let ZOOM_RECT; // Zoom rect data-join
+  let G_CONTEXT_AREA; // Context area group selection
+  let CONTEXT_AREA; // Area generator to create paths from stack for context area
+  let DATA_PATHS_CONTEXT; // Context chart data paths data-join
+  let BRUSH_GROUP; // Brush group selection
+
+  // Legend variables
+  const LEG = {
+    topPad: 20, // Padding between chart and legend title
+    titlePad: 5, // Padding between legend title bottom and first row of legend
+    rowPad: 3, // Padding between legend rows
+    rectWidth: 12, // Width of legend rects
+    rectPad: 5, // Padding between legend rect and legend text
+    textPad: 5, // Padding after legend text
+    title: undefined, // Title of legend
+    data: undefined, // Array of strings for legend entries
+    elPos: undefined, // Positions of legend text elements
+    height: undefined, // Height allocated for legend,
+    groupSelection: undefined, // Legend group selection
+    titleDataJoin: undefined, // Legend title data-join
+    rectsDataJoin: undefined, // Legend rects data-join
+    textsDataJoin: undefined // Legend texts data-join
+  };
+
+  // Gradient variables
+  const GRAD = {
+    fill: {
+      SHM: "#d38506",
+      Hermitage: "#FFC546",
+
+      
+
+
+
+
+
+
+
+      "Скіфська доба": "#fd8d3c",
+      "Сарматська доба":"#fed976",
+      "Палеоліт": "#800026",
+      "Мезоліт": "#bd0026",
+      "Неоліт": "#e31a1c",
+      "Бронзовий і залізний віки":"#fc4e2a",
+      "Антична доба":"#feb24c",
+      "Епоха Великого переселення народів":"#ffeda0",
+      "Епоха Русі":"yellow",
+      "Епоха Галицько-Волинської держави":"green",
+       "Козацька доба":"grey"
+    }, // Fill colors by key
+    stroke: {
+      SHM: "#1d9992",
+      Hermitage: "#2222bc"
+    }, // Stroke colors by key
+    fillScale: d3.scaleOrdinal([
+      "#21b9b7",
+      "#4141e0",
+      "#7db71a",
+      "#8e2f8a",
+      "#d38506",
+      "#0abf85",
+      "#2f90ec",
+      "#db3851",
+      "#61F9F7",
+      "#8181FF",
+      "#BDF75A",
+      "#CE6FCA",
+      "#FFC546",
+      "#4AFFC5",
+      "#6FD0FF",
+      "#FF7891",
+      "#007977",
+      "#0101A0",
+      "#3D7700",
+      "#4E004A",
+      "#934500",
+      "#007F45",
+      "#0050AC",
+      "#9B0011"
+    ]), // Backup ordinal scale for fills
+    strokeScale: d3.scaleOrdinal([
+      "#1d9992",
+      "#2222bc",
+      "#6a9617",
+      "#6d256d",
+      "#ba7006",
+      "#0a9e69",
+      "#07689e",
+      "#a50a2f",
+      "#5DD9D2",
+      "#6262FC",
+      "#AAD657",
+      "#AD65AD",
+      "#FAB046",
+      "#4ADEA9",
+      "#47A8DE",
+      "#E54A6F",
+      "#005952",
+      "#00007C",
+      "#2A5600",
+      "#2D002D",
+      "#7A3000",
+      "#005E29",
+      "#00285E",
+      "#650000"
+    ]), // Backup ordinal scale for strokes
+    data: undefined, // Array of keys and ids used to create gradients
+    defsSelection: undefined, // Defs selections
+    gradsDataJoin: undefined // Gradients data join
+  };
+
+  /*************************************************** Setup Callback Functions ***************************************************/
+
+  // Attach event for data message from VA
+//  va.messagingUtil.setOnDataReceivedCallback(handleCallback);
+
+  // If not being rendered in iFrame (outside VA), render with sample data
+  if (!inIframe()) {
+    onDataReceived(SAMPLE_MESSAGE);
+  }
+
+  // Listen for resize event
+///va.contentUtil.setupResizeListener(drawElements);
+//drawElements();
+  /****************************************************** Callback Functions ******************************************************/
+
+  // Use timeouts to debounce update events
+  function handleCallback(messageFromVA) {
+    // Prevent duplicate data messages that come from nested filters
+    if (VA_MESSAGE && _.isEqual(messageFromVA, VA_MESSAGE)) {
+      return;
+    }
+/*
+    if (LAST_TRANSITION_END > Date.now()) {
+      setTimeout(function() {
+        onDataReceived(messageFromVA);
+      }, LAST_TRANSITION_END - Date.now());
+      LAST_TRANSITION_END = LAST_TRANSITION_END + TRANS_TIME + 50;
+    } else {*/
+      onDataReceived(messageFromVA);
+      //LAST_TRANSITION_END = Date.now() + TRANS_TIME + 50;
+  //  }
+    
+  }
+
+  // Take action on received data
+  function onDataReceived(messageFromVA) {
+    //console.log(messageFromVA);
+    // Initialize data variables
+    va.contentUtil.convertDateColumns(messageFromVA);
+    VA_MESSAGE = messageFromVA;
+    VA_RESULT_NAME = messageFromVA.resultName;
+
+    // Validate data roles
+    if (
+      !va.contentUtil.validateRoles(messageFromVA, ["date", "string", "number"])
+    ) {
+      va.messagingUtil.postInstructionalMessage(
+        VA_RESULT_NAME,
+        "D3 Streamgraph expects columns to be assigned in this order:\n" +
+          " 1. Date (date)\n" +
+          " 2. Group By Category (string)\n" +
+          " 3. Measure (number)"
+      );
+      return;
+    }
+//console.log(VA_MESSAGE);
+    // Restructure metadata from data message
+    METADATA = {
+      date: VA_MESSAGE.columns[0].label,
+      category: VA_MESSAGE.columns[1].label,
+      measure: VA_MESSAGE.columns[2].label
+    };
+
+    // Create nest to help process data structure
+    CATEGORIES = d3
+      .nest()
+      .key(function(d) {
+        return d[1];
+      })
+      .entries(VA_MESSAGE.data);
+
+    // Restructure data from 2d array format into associative array format
+    DATA = [];
+    let k, datum;
+    let i = 0;
+   //console.log(VA_MESSAGE.data);
+    while (i < VA_MESSAGE.data.length) {
+	       	       //console.log(typeof VA_MESSAGE.data[i]);
+	 if (typeof VA_MESSAGE.data[i] !== 'undefined'){
+      k = 0;
+      //console.log(VA_MESSAGE.data[i]);
+      datum = {
+        total: 0,
+        date: VA_MESSAGE.data[i][0]
+      };
+      for (let j = 0; j < CATEGORIES.length; j++) {
+        // Freq for this date and category present
+        //console.log(VA_MESSAGE.data[i + k]);
+        if (VA_MESSAGE.data[i + k][1] == CATEGORIES[j].key) {
+	datum[CATEGORIES[j].key] = VA_MESSAGE.data[i + k][2];		  
+          datum.total += VA_MESSAGE.data[i + k][2];
+          k++;
+        }
+        // 0 freq for this date and category
+        else {
+          datum[CATEGORIES[j].key] = 0;
+        }
+      }
+      //console.log(k);
+      //i += k;
+			  if (typeof VA_MESSAGE.data[i] == 'object'){
+			  //console.log(VA_MESSAGE.data[i]);
+			  if (Number(VA_MESSAGE.data[i][0].getFullYear())<=2222){			                 
+	        DATA.push(datum);
+										      }
+        else {
+
+        }
+
+			  }
+        //i += k;
+       // i +=k;
+    }
+
+    i += k;
+}
+    // Create data stack
+    STACK = d3
+      .stack()
+      .keys(
+        CATEGORIES.map(function(d) {
+          return d.key;
+        })
+      )
+      .offset(d3.stackOffsetSilhouette);
+//console.log(DATA);
+    OLD_STACKED_DATA = STACKED_DATA;
+    STACKED_DATA = STACK(DATA);
+
+    // Add id to stacked data
+    STACKED_DATA.forEach(function(d) {
+      d.id = "id-" + d.key.replace(/[\W]/g, "_");
+    });
+
+    // Assign data variables for legend
+    LEG.title = METADATA.category;
+    LEG.data = STACKED_DATA.map(function(d) {
+      return {
+        key: d.key,
+        id: d.id
+      };
+    });
+
+    // Assign data variable for gradients
+    GRAD.data = LEG.data;
+
+    // Initialize chart if first draw, otherwise process data and update elements accordingly
+    if (d3.select("#" + SVG_ID).empty()) {
+      drawElements();
+    } else {
+      updateElements();
+    }
+
+
+    draw_circles(groupedData_herm,groupedData_shm,herm_data,shm_data);
+    //get_shm();
+   
+  }
+
+
+function get_shm(){
+  //console.log("hurray!");
+  //window.addEventListener("DOMContentLoaded", (event) => {
+   // console.log("hurray!");
+   //if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+    //var s = d3.event.selection || X_SCALE_CONTEXT.range(); // use entire range if selection is null
+console.log(S.domain());
+/*
+var X_SCALE = d3
+      .scaleLinear()
+			.domain(			      
+       [d3.extent(DATA, function(d) {
+          return d.date;
+        })[0],new Date(2024,0,1)]
+      )
+      .rangeRound([0, CHART_WIDTH]);
+      */
+  const sheetDataHandler = (sheetData) => {
+    console.log("sheet data: ", sheetData);
+    //id: 7205243
+//img: "https://catalog.shm.ru/api/spf/OXRrxH-lU-E7JZwCzzNuTZrA70CFM4sJcxt1EL2TDNxFpYHSL-CPwofRDGkFwJ29.jpg?w=1000&h=1000"
+//title: "Сосуда обломок, бронза/неолит/мезолит"
+//датировка: "10 тыс. до н.э."
+var htm="";
+for (var i=0; i<sheetData.length; i++) {
+  try {
+htm+="<img style='max-width: 50px; max-height: 50px;' src='"+sheetData[i]["img"]+"'> "+sheetData[i]["title"]+"<hr>";
+  } catch(e){
+
+    htm+=sheetData[i]["title"]+"<hr>";
+  }
+}
+d3.select("#tabs-1").html(htm);
+  };
+
+  // --==== QUERY EXAMPLES ====--
+  // --==== USE LETTERS FOR COLUMN NAMES ====--
+  //  'SELECT A,C,D WHERE D > 150'
+  //  'SELECT * WHERE B = "Potato"'
+  //  'SELECT * WHERE A contains "Jo"'
+  //  'SELECT * WHERE C = "active" AND B contains "Jo"'
+  //  "SELECT * WHERE E > date '2022-07-9' ORDER BY E DESC"
+  //https://docs.google.com/spreadsheets/d/1eFcMhV7iGII8f-yuf7vsqazg-S0Za76kGO2MiejHh6Y/edit?gid=1711018484#gid=1711018484
+  //SELECT * WHERE B > 250 AND C < date '1960-01-1' AND D = FALSE
+  //https://docs.google.com/spreadsheets/d/1CEmCx-ggRZoAxyLOKm2MsatDSYMLsFKEZUCPzNe0W-Y/edit?gid=1858833916#gid=1858833916
+  getSheetData({
+    // sheetID you can find in the URL of your spreadsheet after "spreadsheet/d/"
+    sheetID: "1CEmCx-ggRZoAxyLOKm2MsatDSYMLsFKEZUCPzNe0W-Y",
+    // sheetName is the name of the TAB in your spreadsheet (default is "Sheet1") WHERE B like 'Сосуд%'
+    sheetName: "SHM_final_last",
+    query: "SELECT A,B,C,D where AN>=-55 and AN<=2024 order by AN ASC limit 10",
+    callback: sheetDataHandler,
+  });
+//});
+}
+
+function getRandomInt(min, max) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
+}
+
+function get_shm1(){
+  var num=10;
+  d3.select("#tabs-1").html("");
+  //console.log("hurray!");
+  //window.addEventListener("DOMContentLoaded", (event) => {
+   // console.log("hurray!");
+   //if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+    //var s = d3.event.selection || X_SCALE_CONTEXT.range(); // use entire range if selection is null
+    //console.log(S.domain());
+  const sheetDataHandler = (sheetData) => {
+    //console.log("sheet data: ", sheetData);
+    //id: 7205243
+//img: "https://catalog.shm.ru/api/spf/OXRrxH-lU-E7JZwCzzNuTZrA70CFM4sJcxt1EL2TDNxFpYHSL-CPwofRDGkFwJ29.jpg?w=1000&h=1000"
+//title: "Сосуда обломок, бронза/неолит/мезолит"
+//датировка: "10 тыс. до н.э."
+var htm="";
+for (var i=num-10; i<num; i++) {
+  try {
+    //htm+=sheetData[i]["title"]+"<hr>";
+htm+="<img style='max-width: 50px; max-height: 50px;' src='"+sheetData[i]["img"]+"'> "+sheetData[i]["title"]+"<hr>";
+  } catch(e){
+
+    htm+=sheetData[i]["title"]+"<hr>";
+  }
+}
+d3.select("#tabs-1").html(htm);
+  };
+
+  // --==== QUERY EXAMPLES ====--
+  // --==== USE LETTERS FOR COLUMN NAMES ====--
+  //  'SELECT A,C,D WHERE D > 150'
+  //  'SELECT * WHERE B = "Potato"'
+  //  'SELECT * WHERE A contains "Jo"'
+  //  'SELECT * WHERE C = "active" AND B contains "Jo"'
+  //  "SELECT * WHERE E > date '2022-07-9' ORDER BY E DESC"
+  //https://docs.google.com/spreadsheets/d/1eFcMhV7iGII8f-yuf7vsqazg-S0Za76kGO2MiejHh6Y/edit?gid=1711018484#gid=1711018484
+  //SELECT * WHERE B > 250 AND C < date '1960-01-1' AND D = FALSE
+  getSheetData({
+    // sheetID you can find in the URL of your spreadsheet after "spreadsheet/d/"
+    sheetID: "1CEmCx-ggRZoAxyLOKm2MsatDSYMLsFKEZUCPzNe0W-Y",
+    // sheetName is the name of the TAB in your spreadsheet (default is "Sheet1") WHERE B like 'Сосуд%'
+    sheetName: "SHM_final_last",
+    query: "SELECT A,B,C,D where AN>"+S.domain()[0].getFullYear().toString()+" and AN<"+S.domain()[1].getFullYear().toString()+" order by AN ASC limit "+num.toString(),
+    callback: sheetDataHandler,
+  });
+//});
+}
+
+
+
+
+  // Draw elements for first time and on resize event
+  function drawElements() {
+    // Return if data is not yet initialized
+    if (!DATA) {
+      return;
+    }
+
+    // Calculate dimensions for graph based on container dimensions
+    WIDTH = document.body.clientWidth*0.95;
+    HEIGHT = document.body.clientHeight;
+
+    // Append svg and save reference
+    d3.select("#timeline")
+      .selectAll("#" + SVG_ID)
+      .data([DATA])
+      .enter()
+      .append("svg")
+      .attr("id", SVG_ID);
+
+    SVG = d3.select("#" + SVG_ID);
+
+    // Append defs and save reference
+    SVG.selectAll(".gradient-defs")
+      .data([DATA])
+      .enter()
+      .append("defs")
+      .classed("gradient-defs", true);
+
+    GRAD.defsSelection = SVG.select(".gradient-defs");
+
+    // Create gradient definitions
+    defineGradients();
+
+    // Use fake scales to determine axes dimensions
+    calculateAxesDimensions();
+
+    // Compute the x y locations for legend elements
+    calculateLegendDimensions();
+
+    // Draw legend elements
+    drawLegend();
+
+    // Create x axis label
+    X_LABEL = SVG.selectAll(".x-label").data([DATA]);
+
+    X_LABEL.enter()
+      .append("text")
+      .classed("x-label", true)
+      .text(METADATA.date)
+      .each(function() {
+        X_LABEL_HEIGHT = this.getBBox().height;
+      })
+      .merge(X_LABEL)
+      .attr("x", WIDTH / 2)
+      .attr("y", HEIGHT - LEG.height - VERT_PAD);
+
+    // Create y axis label
+    Y_LABEL = SVG.selectAll(".y-label").data([DATA]);
+
+    Y_LABEL.enter()
+      .append("text")
+      .classed("y-label", true)
+      .text(METADATA.measure)
+      .each(function() {
+        Y_LABEL_HEIGHT = this.getBBox().height;
+      });
+
+    // Calculate chart dimensions
+    CHART_WIDTH = WIDTH - RIGHT_AXIS_PAD - Y_AXIS_PAD - Y_AXIS_WIDTH;
+    OLD_CHART_HEIGHT = CHART_HEIGHT;
+    CHART_HEIGHT =
+      HEIGHT -
+      LEG.height -
+      X_LABEL_HEIGHT -
+      VERT_PAD -
+      X_AXIS_HEIGHT -
+      CONTEXT_HEIGHT -
+      VERT_PAD -
+      X_AXIS_HEIGHT -
+      VERT_PAD -
+      Y_LABEL_HEIGHT;
+
+    // Initialize scales using chart dimensions
+    X_SCALE = d3
+      .scaleTime()
+			.domain(			      
+       [d3.extent(DATA, function(d) {
+          return d.date;
+        })[0],new Date(2024,0,1)]
+      )
+      .rangeRound([0, CHART_WIDTH]);
+
+      X_SCALE_2 = d3
+      .scaleLinear()
+			.domain(
+[d3.extent(DATA, function(d) {
+          return d.date;
+        })[0],new Date(1900,0,1),d3.extent(DATA, function(d) {
+          return d.date;
+        })[1]]
+      )
+      .rangeRound([0, CHART_WIDTH/2,CHART_WIDTH]);
+      filts_herm=herm_data.filter(function(r){ if (r.dates>X_SCALE.domain()[0] && r.dates<X_SCALE.domain()[1]) return r;});
+    filts_shm=shm_data.filter(function(r){ if (r.dates>X_SCALE.domain()[0] && r.dates<X_SCALE.domain()[1]) return r;});
+    //console.log(filts_shm);
+    d3.select("#comment").html("Кількість вибраних експонатів: a) в Державному історичному музеї Росії: "+numberWithCommas(filts_shm.length) +"; б) в Ермітажі:"+ numberWithCommas(filts_herm.length));
+    //console.log(filts_herm);
+    groupedData_herm = d3.nest() 
+            .key(function (d) { return d.coords; }) 
+            .rollup(function(cities) {
+    return cities.length;
+    })
+            .entries(filts_herm); 
+            //console.log(groupedData_herm);
+            groupedData_shm = d3.nest() 
+            .key(function (d) { return d.coords; }) 
+            .rollup(function(cities) {
+    return cities.length;
+    })
+            .entries(filts_shm); 
+            //draw_map();
+            //console.log(groupedData_shm);
+            //draw_circles(groupedData_herm,groupedData_shm,herm_data,shm_data);        
+    X_SCALE_CONTEXT = d3
+      .scaleTime()
+      .domain(
+        [d3.extent(DATA, function(d) {
+          return d.date;
+        })[0],new Date(880,0,1),new Date(2024,0,1)]
+       /* d3.extent(DATA, function(d) {
+          return d.date;
+        })*/
+      )
+      .rangeRound([0, 4*CHART_WIDTH/5,CHART_WIDTH]);
+/*console.log(d3.extent(DATA, function(d) {
+          return d.date;
+        })[1],new Date(1900,0,1));*/
+    Y_SCALE = d3
+      .scaleLinear()
+      .domain([
+        0,
+        d3.max(DATA, function(d) {
+          return d.total;
+        })
+      ]).rangeRound([CHART_HEIGHT, 0]);
+
+    Y_SCALE_CONTEXT = d3
+      .scaleLinear()
+      .domain([
+        0,
+        d3.max(DATA, function(d) {
+          return  d.total;
+        })
+      ]).rangeRound([CONTEXT_HEIGHT, 0]);
+
+    // Create x axis
+    X_AXIS = SVG.selectAll(".x-axis").data([DATA]);
+
+    X_AXIS.enter()
+      .append("g")
+      .classed("x-axis", true)
+      .merge(X_AXIS)
+      .attr(
+        "transform",
+        "translate(" +
+          Y_AXIS_WIDTH +
+          "," +
+          (Y_LABEL_HEIGHT + VERT_PAD + CHART_HEIGHT) +
+          ")"
+      )
+      .call(d3.axisBottom(X_SCALE).tickSizeOuter(0));
+
+    // Create context x axis
+    X_AXIS_CONTEXT = SVG.selectAll(".x-axis-context").data([DATA]);
+
+var tick_values=[];
+tick_values.push(X_SCALE_CONTEXT.domain()[0]);
+tick_values.push(new Date(Date.UTC(-120000+1, 0, 1)));
+tick_values.push(new Date(Date.UTC(-100000+1, 0, 1)));
+tick_values.push(new Date(Date.UTC(-80000+1, 0, 1)));
+tick_values.push(new Date(Date.UTC(-60000+1, 0, 1)));
+tick_values.push(new Date(Date.UTC(-40000+1, 0, 1)));
+tick_values.push(new Date(Date.UTC((-20000+1), 0, 1)));
+for (var y=1; y<X_SCALE_CONTEXT.domain().length-1; y++){
+  tick_values.push(X_SCALE_CONTEXT.domain()[y]);
+  //console.log(new Date(Date.UTC(-40000, 0, 1)));
+}
+tick_values.push(new Date(Date.UTC((1200+1), 0, 1)));
+tick_values.push(new Date(Date.UTC((1800+1), 0, 1)));
+tick_values.push(X_SCALE_CONTEXT.domain()[X_SCALE_CONTEXT.domain().length-1]);
+
+    X_AXIS_CONTEXT.enter()
+      .append("g")
+      .classed("x-axis-context", true)
+      .merge(X_AXIS_CONTEXT)
+      .attr(
+        "transform",
+        "translate(" +
+          Y_AXIS_WIDTH +
+          "," +
+          (HEIGHT - LEG.height - X_LABEL_HEIGHT - VERT_PAD - X_AXIS_HEIGHT) +
+          ")"
+      )
+.call(d3.axisBottom(X_SCALE_CONTEXT).tickValues(tick_values).tickFormat(d3.timeFormat("%Y")).tickSizeOuter(0));//.ticks(6)
+//console.log(X_SCALE_CONTEXT.domain());
+//d3.select(".x-axis-context").selectAll(".tick").each(function(f){if (f=="2,024 ") return "No date";});
+//d3.select('.y-axis').selectAll('.tick').selectAll('text').text(function(d){ return numberWithCommas(d);});
+
+
+										      
+d3.select('.x-axis-context').selectAll('.tick').selectAll('text').text(function(d){ var hh=d.getFullYear();
+  //console.log(hh);
+	/*if (d.getFullYear()>0) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+			  } else {
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+			  }*/
+
+        if (d.getFullYear()>0 && d.getFullYear()<2020) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+                          } else if (d.getFullYear()<0){
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+                          } else if (d.getFullYear()>=2020){
+return "No date";
+                          }else{
+                            return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" ";
+
+                          }
+});
+d3.select('.x-axis').selectAll('.tick').selectAll('text').text(function(d){ var hh=numberWithCommas(d.getFullYear());
+       /* if (d.getFullYear()>0) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+                          } else {
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+                          }
+*/
+if (d.getFullYear()>0 && d.getFullYear()<2020) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+                          } else if (d.getFullYear()<0){
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+                          } else if (d.getFullYear()>=2020){
+return "No date";
+                          }else{
+                            return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" ";
+
+                          }
+});
+
+    // Create y axis
+    Y_AXIS = SVG.selectAll(".y-axis").data([DATA]);
+
+    Y_AXIS.enter()
+      .append("g")
+      .classed("y-axis", true)
+      .attr(
+        "transform",
+        "translate(" + Y_AXIS_WIDTH + "," + (Y_LABEL_HEIGHT + VERT_PAD) + ")"
+      )
+      .merge(Y_AXIS)
+      .call(
+        d3
+          .axisLeft(Y_SCALE)
+          .ticks(5)
+          /*.tickValues(
+            getTickValues(
+              0,
+              d3.max(DATA, function(d) {
+                return   d.total;
+              }) + 1,
+              parseInt(CHART_HEIGHT / Y_TICK_HEIGHT),
+              1
+            )
+          )*/
+          .tickFormat(d3.format("d"))
+          .tickSizeOuter(0)
+      );
+      d3.select('.y-axis').selectAll('.tick').selectAll('text').text(function(d){ return numberWithCommas(d);});
+
+
+
+
+      
+    // Create brush for context graph
+    BRUSH = d3
+      .brushX()
+      .extent([[0, 0], [CHART_WIDTH, CONTEXT_HEIGHT]])
+      .on("brush end", brushed);
+
+    // Create zoom for primary graph
+    ZOOM = d3
+      .zoom()
+      .scaleExtent([1, Infinity])
+      .translateExtent([[0, 0], [CHART_WIDTH, CHART_HEIGHT]])
+      .extent([[0, 0], [CHART_WIDTH, CHART_HEIGHT]])
+      .on("zoom", zoomed);
+//ZOOM.call(BRUSH.move, [0.3, 0.5]); 
+    // Append G_CLIP and save references
+    SVG.selectAll(".g-clip")
+      .data([DATA])
+      .enter()
+      .append("g")
+      .classed("g-clip", true)
+      .attr("clip-path", "url(#clip)");
+
+    G_CLIP = SVG.select(".g-clip");
+
+    // Append G_CHART_AREA and save references
+    G_CLIP.selectAll(".g-chart-area")
+      .data([DATA])
+      .enter()
+      .append("g")
+      .classed("g-chart-area", true);
+
+    G_CHART_AREA = SVG.select(".g-chart-area").attr(
+      "transform",
+      "translate(" +
+        (Y_AXIS_WIDTH + Y_AXIS_PAD) +
+        "," +
+        (Y_LABEL_HEIGHT + VERT_PAD) +
+        ")"
+    );
+    /*
+   var area0 = d3.area()
+    .x(function(d) { return X_SCALE(d.x); })
+    .y0(CHART_HEIGHT)
+    .y1(function(d) { return Y_SCALE(d.y); });
+
+    */
+    // Create area generator
+    AREA = d3.area()
+      .x(function(d) {
+       // console.log(d);
+       if (d.length==2) {
+        //console.log(d.data.date);
+        return X_SCALE(d.data.date);
+       }else {
+       // console.log("time");
+        //console.log(d.x);
+        return X_SCALE(d.x);
+        //return X_SCALE_CONTEXT(d.data.date);
+       }
+      })
+      .y0(function(d) {
+        //console.log(d);
+        if (d.length==2) {
+        return Y_SCALE(d[1]);
+        }else {
+        return CHART_HEIGHT;
+        }
+      })
+      .y1(function(d) {
+        if (d.length==2) {
+        return Y_SCALE(d[0]);
+        }else {
+          return Y_SCALE(d.y);
+        }
+      })
+      .curve(d3.curveMonotoneX);
+
+    // Create clip path
+    CLIP_PATH = SVG.select("defs")
+      .selectAll("clipPath")
+      .data([DATA]);
+
+    CLIP_PATH.enter()
+      .append("clipPath")
+      .attr("id", "clip");
+
+    // Create clip path rect
+    CLIP_PATH_RECT = SVG.select("defs")
+      .select("#clip")
+      .selectAll("rect")
+      .data([DATA]);
+
+    CLIP_PATH_RECT.enter()
+      .append("rect")
+      .classed("clip-path-rect", true)
+      .merge(CLIP_PATH_RECT)
+      .attr("x", Y_AXIS_WIDTH + Y_AXIS_PAD)
+      .attr("y", Y_LABEL_HEIGHT + VERT_PAD)
+      .attr("width", CHART_WIDTH)
+      .attr("height", CHART_HEIGHT);
+
+    // Create data paths
+    DATA_PATHS = G_CHART_AREA.selectAll("path").data(STACKED_DATA, function(d) {
+      return d.id;
+    });
+
+    DATA_PATHS.enter()
+      .append("path")
+      .attr("id", function(d) {
+        return d.id;
+      })
+      .classed("data-path", true)
+      .merge(DATA_PATHS)
+      .attr(
+        "transform",
+        "translate(0, " +
+          (CHART_HEIGHT -
+            Y_SCALE(
+              d3.min(STACKED_DATA[0], function(d) {
+                return d[0];
+              })
+            )) +
+          ")"
+      )
+      .attr("d", AREA)
+      .attr("fill", function(d) {
+        return "url(#" + d.id + "-gradient)";
+      }).style("fill-opacity",0.5).style("stroke","black");
+
+    // Create zoom rect
+    ZOOM_RECT = G_CLIP.selectAll(".zoom").data([DATA]);
+
+    ZOOM_RECT.enter()
+      .append("rect")
+      .classed("zoom", true)
+      .merge(ZOOM_RECT)
+      .attr(
+        "transform",
+	"translate(" +
+	(Y_AXIS_WIDTH + Y_AXIS_PAD)+									      
+          "," +
+          (Y_LABEL_HEIGHT + VERT_PAD) +
+          ")"
+      )
+      .attr("width",200)// CHART_WIDTH)
+      .attr("height", CHART_HEIGHT)
+      .call(ZOOM);
+
+    // Append G_CONTEXT_AREA and save references
+    SVG.selectAll(".g-context-area")
+      .data([DATA])
+      .enter()
+      .append("g")
+      .classed("g-context-area", true);
+
+    G_CONTEXT_AREA = SVG.select(".g-context-area").attr(
+      "transform",
+      "translate(" +
+        (Y_AXIS_WIDTH + Y_AXIS_PAD) +
+        ", " +
+        (HEIGHT -
+          LEG.height -
+          X_LABEL_HEIGHT -
+          VERT_PAD -
+          X_AXIS_HEIGHT -
+          CONTEXT_HEIGHT) +
+        ")"
+    );
+
+    // Create context area generator
+    CONTEXT_AREA = d3
+      .area()
+      .x(function(d) {
+        return X_SCALE_CONTEXT(d.data.date);
+      })
+      .y0(function(d) {
+        return Y_SCALE_CONTEXT(d[1]);
+      })
+      .y1(function(d) {
+        return Y_SCALE_CONTEXT(d[0]);
+      })
+      .curve(d3.curveMonotoneX);
+
+    // Create context data paths
+    DATA_PATHS_CONTEXT = G_CONTEXT_AREA.selectAll("path").data(
+      STACKED_DATA,
+      function(d) {
+        return d.id;
+      }
+    );
+
+    DATA_PATHS_CONTEXT.enter()
+      .append("path")
+      .classed("data-path-context", true)
+      .merge(DATA_PATHS_CONTEXT)
+      .attr(
+        "transform",
+        "translate(0, " +
+          (CONTEXT_HEIGHT -
+            Y_SCALE_CONTEXT(
+              d3.min(STACKED_DATA[0], function(d) {
+                return d[0];
+              })
+            )) +
+          ")"
+      )
+      .attr("d", CONTEXT_AREA)
+      .attr("fill", function(d) {
+        return "url(#" + d.id + "-gradient)";
+      }).style("stroke","black").style("stroke-width",0.5);
+
+    // Create brush group
+    BRUSH_GROUP = G_CONTEXT_AREA.selectAll("g").data([DATA]);
+										      var tt=X_SCALE.range()[0];
+										      var tt1=X_SCALE.range()[1];
+    BRUSH_GROUP.enter()
+      .append("g")
+      .classed("brush", true)
+      .merge(BRUSH_GROUP)
+      .call(BRUSH)
+.call(BRUSH.move, [tt1*0.7945, tt1]);
+
+//console.log(X_SCALE.range()[1]);
+//d3.brush().move, [ [100, 0], [400, 100] ]);		
+
+var handle = SVG.selectAll(".handle").style("fill","black");
+  /*.data([{type: "w"}, {type: "e"}])
+  .enter().append("path")
+    .attr("class", "handle--custom")
+    .attr("fill", "#666")
+    .attr("fill-opacity", 0.8)
+    .attr("stroke", "#000")
+    .attr("stroke-width", 1.5)
+    .attr("cursor", "ew-resize")
+    .attr("d", d3.arc()
+        .innerRadius(0)
+        .outerRadius(300 / 2)
+        .startAngle(0)
+        .endAngle(function(d, i) { return i ? Math.PI : -Math.PI; }));*/
+
+        //draw_map();
+
+d3.selectAll(".markers").remove();
+//draw_circles(groupedData_herm,groupedData_shm,herm_data,shm_data);
+
+/*
+      var x = d3.scaleLinear()
+      .domain(d3.extent(DATA.map(function(d) { return +d.date; })))
+    .range([ 0, CHART_WIDTH ]);
+      SVG.append("g")
+          .attr("class","markers")
+          .attr("transform", "translate(0," + CHART_HEIGHT*0.98 + ")")
+          .call(d3.axisBottom(X_SCALE).tickSize(-CHART_HEIGHT).tickFormat(d3.timeFormat("%Y")))//.tickValues([-2000,988]))                                                                                         
+.select(".domain").remove()
+// Customization                                                                                                                                                                                                  
+SVG.selectAll(".tick line").attr("stroke", "#b8b8b8")
+  */    
+      
+  }
+
+  // Redraw data dependent elements on data changedIndex
+function updateElements() {
+		//	  console.log(DATA);
+    // Create gradient definitions
+    defineGradients();
+
+    // Compute the x y locations for legend elements
+    calculateLegendDimensions();
+
+    // Update legend elements
+    updateLegend();
+
+    // Move x axis label
+    SVG.select(".x-label")
+      .transition()
+      .duration(TRANS_TIME)
+      .attr("y", HEIGHT - LEG.height - VERT_PAD);
+
+    // Calculate chart dimensions
+    CHART_WIDTH = WIDTH - RIGHT_AXIS_PAD - Y_AXIS_PAD - Y_AXIS_WIDTH;
+    OLD_CHART_HEIGHT = CHART_HEIGHT;
+    CHART_HEIGHT =
+      HEIGHT -
+      LEG.height -
+      X_LABEL_HEIGHT -
+      VERT_PAD -
+      X_AXIS_HEIGHT -
+      CONTEXT_HEIGHT -
+      VERT_PAD -
+      X_AXIS_HEIGHT -
+      VERT_PAD -
+      Y_LABEL_HEIGHT;
+
+    // Update y scales
+    OLD_Y_SCALE = Y_SCALE;
+    Y_SCALE = d3
+      .scaleLinear()
+      .domain([
+        0,
+        d3.max(DATA, function(d) {
+          return  d.total;
+        })
+      ])
+      .rangeRound([CHART_HEIGHT, 0]);
+//console.log(DATA);
+    Y_SCALE_CONTEXT = d3
+      .scaleLinear()
+      .domain([
+        0,
+        d3.max(DATA, function(d) {
+          return  d.total;
+        })
+      ])
+      .rangeRound([CONTEXT_HEIGHT, 0]);
+
+    // Update y axis
+    SVG.selectAll(".y-axis")
+      .transition()
+      .duration(TRANS_TIME)
+      .call(
+        d3
+          .axisLeft(Y_SCALE)
+          .tickValues(
+            getTickValues(
+              0,
+              d3.max(DATA, function(d) {
+                return   d.total;
+              }) + 1,
+              parseInt(CHART_HEIGHT / Y_TICK_HEIGHT),
+              1
+            )
+          )
+          .tickFormat(d3.format("d"))
+          .tickSizeOuter(0)
+      );
+
+    // Move x axes
+    SVG.select(".x-axis")
+      .transition()
+      .duration(TRANS_TIME)
+      .attr(
+        "transform",
+        "translate(" +
+          Y_AXIS_WIDTH +
+          "," +
+          (Y_LABEL_HEIGHT + VERT_PAD + CHART_HEIGHT) +
+          ")"
+      );
+
+    SVG.select(".x-axis-context")
+      .transition()
+      .duration(TRANS_TIME)
+      .attr(
+        "transform",
+        "translate(" +
+          Y_AXIS_WIDTH +
+          "," +
+          (HEIGHT - LEG.height - X_LABEL_HEIGHT - VERT_PAD - X_AXIS_HEIGHT) +
+          ")"
+      );
+//d3.selectAll(".x-axis-context text").html("hh");
+    // Create old area generator
+    OLD_AREA = d3
+      .area()
+      .x(function(d) {
+        return X_SCALE(d.data.date);
+      })
+      .y0(function(d) {
+        return d[1];
+      })
+      .y1(function(d) {
+        return d[0];
+      })
+      .curve(d3.curveBasis);
+
+    // Update clip path rect height
+    SVG.select(".clip-path-rect")
+      .transition()
+      .duration(TRANS_TIME)
+      .attr("height", CHART_HEIGHT);
+
+    // Update data paths
+    DATA_PATHS = G_CHART_AREA.selectAll("path").data(STACKED_DATA, function(d) {
+      return d.id;
+    });
+
+    DATA_PATHS.classed("entering", false)
+      .transition()
+      .duration(TRANS_TIME)
+      .attr(
+        "transform",
+        "translate(0, " +
+          (CHART_HEIGHT -
+            Y_SCALE(
+              d3.min(STACKED_DATA[0], function(d) {
+                return d[0];
+              })
+            )) +
+          ")"
+      )
+      .attr("d", AREA);
+
+    DATA_PATHS.enter()
+      .append("path")
+      .classed("entering", true)
+      .attr("id", function(d) {
+        return d.id;
+      })
+      .classed("data-path", true)
+      .attr("fill", function(d) {
+        return "url(#" + d.id + "-gradient)";
+      })
+      .attr(
+        "transform",
+        "translate(0, " +
+          (OLD_CHART_HEIGHT -
+            OLD_Y_SCALE(
+              d3.min(OLD_STACKED_DATA[0], function(d) {
+                return d[0];
+              })
+            )) +
+          ")"
+      )
+      .attr("d", function() {
+        const neighbor = getNeighborElement(this, null, function(el) {
+          return d3.select(el).classed("entering");
+        });
+        const index = neighbor.dir == "previousElementSibling" ? 1 : 0;
+        const neighborDatum =
+          OLD_STACKED_DATA[
+            OLD_STACKED_DATA.findIndex(function(element) {
+              return element.id == neighbor.el.id;
+            })
+          ];
+
+        const datum = [];
+        for (let i = 0; i < neighborDatum.length; i++) {
+          datum.push({
+            0: neighborDatum[i][index],
+            1: neighborDatum[i][index],
+            data: neighborDatum[i].data
+          });
+        }
+
+        return OLD_AREA(datum);
+      })
+      .transition()
+      .duration(TRANS_TIME)
+      .attr(
+        "transform",
+        "translate(0, " +
+          (CHART_HEIGHT -
+            Y_SCALE(
+              d3.min(STACKED_DATA[0], function(d) {
+                return d[0];
+              })
+            )) +
+          ")"
+      )
+      .attr("d", AREA);
+
+    DATA_PATHS.exit()
+      .classed("exiting", true)
+      .transition()
+      .duration(TRANS_TIME)
+      .attr(
+        "transform",
+        "translate(0, " +
+          (CHART_HEIGHT -
+            Y_SCALE(
+              d3.min(STACKED_DATA[0], function(d) {
+                return d[0];
+              })
+            )) +
+          ")"
+      )
+      .attr("d", function() {
+        const neighbor = getNeighborElement(this, null, function(el) {
+          return d3.select(el).classed("exiting");
+        });
+        const index = neighbor.dir == "previousElementSibling" ? 1 : 0;
+        const neighborDatum =
+          STACKED_DATA[
+            STACKED_DATA.findIndex(function(element) {
+              return element.id == neighbor.el.id;
+            })
+          ];
+
+        const datum = [];
+        for (let i = 0; i < neighborDatum.length; i++) {
+          datum.push({
+            0: neighborDatum[i][index],
+            1: neighborDatum[i][index],
+            data: neighborDatum[i].data
+          });
+        }
+
+        return AREA(datum);
+      })
+      .remove();
+
+    // Move zoom rect
+    G_CLIP.select(".zoom")
+      .transition()
+      .duration(TRANS_TIME)
+      .attr(
+        "transform",
+        "translate(" +
+          (Y_AXIS_WIDTH + Y_AXIS_PAD) +
+          "," +
+          (Y_LABEL_HEIGHT + VERT_PAD) +
+          ")"
+      )
+      .attr("height", CHART_HEIGHT);
+
+    // Move context area group
+    G_CONTEXT_AREA.transition()
+      .duration(TRANS_TIME)
+      .attr(
+        "transform",
+        "translate(" +
+          (Y_AXIS_WIDTH + Y_AXIS_PAD) +
+          ", " +
+          (HEIGHT -
+            LEG.height -
+            X_LABEL_HEIGHT -
+            VERT_PAD -
+            X_AXIS_HEIGHT -
+            CONTEXT_HEIGHT) +
+          ")"
+      );
+
+
+
+    // Remove and recreate context data paths
+    G_CONTEXT_AREA.selectAll(".data-path-context").remove();
+
+    DATA_PATHS_CONTEXT = G_CONTEXT_AREA.selectAll("path").data(
+      STACKED_DATA,
+      function(d) {
+        return d.id;
+      }
+    );
+
+    DATA_PATHS_CONTEXT.enter()
+      .append("path")
+      .classed("data-path-context", true)
+      .merge(DATA_PATHS_CONTEXT)
+      .attr(
+        "transform",
+        "translate(0, " +
+          (CONTEXT_HEIGHT -
+            Y_SCALE_CONTEXT(
+              d3.min(STACKED_DATA[0], function(d) {
+                return d[0];
+              })
+            )) +
+          ")"
+      )
+      .attr("d", CONTEXT_AREA)
+      .attr("fill", function(d) {
+        return "url(#" + d.id + "-gradient)";
+      });
+
+
+
+
+    
+  }
+
+  /******************************************************* Helper Functions *******************************************************/
+
+  // Determine whether or not page is being rendered in iFrame
+  function inIframe() {
+    try {
+      return window.self !== window.top;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  // Use fake scales to determine axes dimensions
+  function calculateAxesDimensions() {
+    // Initialize scales with fake ranges
+    X_SCALE = d3
+      .scaleTime()
+      .domain(
+        d3.extent(DATA, function(d) {
+          return d.date;
+        })
+      )
+      .rangeRound([0, 10]);
+
+    Y_SCALE = d3
+      .scaleLinear()
+      .domain([
+        0,
+        d3.max(DATA, function(d) {
+          return d.total;
+        })
+      ])
+      // .domain([0, d3.max(STACKED_DATA, function(layer) { return d3.max(layer, function(d){ return d[0] + d[1];}); })])
+      .rangeRound([0, 10]);
+
+    // Use dummy axes with fake scales to obtain dimensions
+    SVG.append("g")
+      .classed("y-axis", true)
+      .call(d3.axisLeft(Y_SCALE))
+      .each(function() {
+        Y_TICK_HEIGHT = d3
+          .select(this)
+          .select("text")
+          .node()
+          .getBBox().height;
+        Y_AXIS_WIDTH = this.getBBox().width;
+        this.remove();
+      });
+
+    SVG.append("g")
+      .classed("x-axis", true)
+      .call(d3.axisBottom(X_SCALE))
+      .each(function() {
+        d3.select(this)
+          .selectAll("text")
+          .each(function() {
+            X_TICK_MAX_WIDTH = Math.max(
+              X_TICK_MAX_WIDTH,
+              this.getComputedTextLength() + 2 * X_TICK_PAD
+            );
+          });
+        X_AXIS_HEIGHT = this.getBBox().height;
+        this.remove();
+			    });
+SVG.select('.x-axis').selectAll('.tick').selectAll('text').text(function(d){ var hh=numberWithCommas(d.getFullYear());
+	if (d.getFullYear()>0 && d.getFullYear()<2020) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+                          } else if (d.getFullYear()<0){
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+                          } else if (d.getFullYear()>=2020){
+return "No date";
+                          }else{
+                            return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" ";
+
+                          }
+									   });
+
+
+
+
+      
+  }
+
+  // Compute array of readable tick values between min (inclusive) and max (exclusive) of length less than count
+  function getTickValues(min, max, count, minInterval) {
+    const pattern = [5, 2, 1];
+    let tickValues;
+    let range = max - min;
+    let pow = Math.floor(Math.log10(range));
+    let p = 0;
+    let interval = pattern[p] * Math.pow(10, pow);
+
+    do {
+      tickValues = d3.range(min, max, interval);
+
+      if (p == 2) {
+        p = 0;
+        pow--;
+      } else {
+        p++;
+      }
+
+      interval = pattern[p] * Math.pow(5, pow);
+    } while (d3.range(min, max, interval).length <= count && interval >= minInterval);
+      //console.log(tickValues);
+
+return tickValues;
+  //    console.log(tickValues);
+  }
+
+
+
+  // Handle brush events
+  function brushed() {
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+    var s = d3.event.selection || X_SCALE_CONTEXT.range(); // use entire range if selection is null
+d3.select("#tabs-1").html("");
+d3.select("#tabs-2").html("");
+    // Update x scale domain of main chart scale of context chart
+    S=X_SCALE.domain(s.map(X_SCALE_CONTEXT.invert, X_SCALE_CONTEXT));
+    //herm_data.map(function(s){s["dates"]=new Date(Number(s["dates"].split(".")[0]),1,1); return s;});
+    //console.log(X_SCALE.domain());
+    var filts_herm=herm_data.filter(function(r){ if (r.dates>X_SCALE.domain()[0] && r.dates<X_SCALE.domain()[1]) return r;});
+    var filts_shm=shm_data.filter(function(r){ if (r.dates>X_SCALE.domain()[0] && r.dates<X_SCALE.domain()[1]) return r;});
+    //console.log(filts_shm);
+    d3.select("#comment").html("Кількість вибраних предметів колекцій: a) в Державному історичному музеї Росії: "+numberWithCommas(filts_shm.length) +"; б) в Ермітажі:"+ numberWithCommas(filts_herm.length));
+    groupedData_herm = d3.nest() 
+            .key(function (d) { return d.coords; }) 
+            .rollup(function(cities) {
+    return cities.length;
+    })
+            .entries(filts_herm); 
+            groupedData_shm = d3.nest() 
+            .key(function (d) { return d.coords; }) 
+            .rollup(function(cities) {
+    return cities.length;
+    })
+            .entries(filts_shm); 
+
+            //d3.select("#map").html(JSON.stringify(groupedData_herm)+JSON.stringify(groupedData_shm));
+    draw_circles(groupedData_herm,groupedData_shm,herm_data,shm_data);
+    // Update x axis of main chart using updated scale
+    SVG.select(".x-axis").call(d3.axisBottom(X_SCALE).tickSizeOuter(0));
+SVG.select('.x-axis').selectAll('.tick').selectAll('text').text(function(d){ var hh=numberWithCommas(d.getFullYear());
+	/*if (d.getFullYear()>0) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+                          } else {
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+                          }
+*/
+if (d.getFullYear()>0 && d.getFullYear()<2020) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+                          } else if (d.getFullYear()<0){
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+                          } else if (d.getFullYear()>=2020){
+return "No date";
+                          }else{
+                            return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" ";
+
+                          }
+									   });
+//{"Скіфська доба":[{ x: new Date("January 1, -7000 00:00:00"), y: 12500 },{ x: new Date("January 1, -3000 00:00:00"), y: 12500 },{ x: new Date("January 1, -3000 00:00:00"), y: 2500 },{ x: new Date("January 1, -7000 00:00:00"), y: 2500 }],
+var events={"Палеоліт":[{ x: new Date(-135000+1,1,1), y: 12500 },{ x: new Date(-10000+1,1,1), y: 12500 }],"Мезоліт":[{ x: new Date(-15000+1,1,1), y: 12500 },{ x: new Date(-12000+1,1,1), y: 12500 }],"Неоліт":[{ x: new Date(-9500+1,1,1), y: 12500 },{ x: new Date(-2200+1,1,1), y: 12500 }],"Бронзовий і залізний віки":[{ x: new Date(-3000+1,1,1), y: 12500 },{ x: new Date(340+1,1,1), y: 12500 }],"Антична доба":[{ x: new Date(-500+1,1,1), y: 15000 },{ x: new Date(600+1,1,1), y: 15000 }],"Епоха Великого переселення народів":[{ x: new Date(300+1,1,1), y: 12500 },{ x: new Date(600+1,1,1), y: 12500 }],"Епоха Русі":[{ x: new Date(862+1,1,1), y: 12500 },{ x: new Date(1132,1,1), y: 12500 }],"Епоха Галицько-Волинської держави":[{ x: new Date(1199,0,1), y: 11000 },{ x: new Date(1349,0,1), y: 11000 }],"Козацька доба":[{ x: new Date(1500,0,1), y: 12500 },{ x: new Date(1675,0,1), y: 12500 }],"Скіфська доба":[{ x: new Date(-7000,0,1), y: 12500 },{ x: new Date(-3000,0,1), y: 12500 }],
+"Сарматська доба":[{ x: new Date(-4000,1,1), y: 12500 },{ x: new Date(-1000,1,1), y: 12500 }]};
+//console.log(GRAD.fill["Скіфська доба"]);
+//console.log(events);
+for (var i=0; i<d3.keys(events).length; i++) {
+plot_skynthians(events[d3.keys(events)[i]],d3.keys(events)[i],GRAD.fill[d3.keys(events)[i]]);
+}
+      
+    // Update paths of main chart
+      G_CHART_AREA.selectAll("path").attr("d", AREA);
+      // Update zoom to point to same location as brush
+
+  /*  
+  ///removed this part for some reason
+  
+  G_CLIP.select(".zoom").call(
+      ZOOM.transform,
+      d3.zoomIdentity.scale(CHART_WIDTH / (s[1] - s[0])).translate(-s[0], 0));
+
+      d3.selectAll(".markers").remove();*/
+
+/*
+var x = d3.scaleLinear()
+      .domain(d3.extent(DATA.map(function(d) { return +d.date; })))
+    .range([ 0, CHART_WIDTH ]);
+    */
+
+    //console.log(X_SCALE.domain());
+    /*  SVG.append("g")
+          .attr("class","markers")
+          //.attr("transform", "translate(0," + CHART_HEIGHT*0.98 + ")")
+          .call(d3.axisBottom(X_SCALE).tickSize(-CHART_HEIGHT).tickFormat(d3.timeFormat("%Y")))
+          .attr("transform", "translate(0," + CHART_HEIGHT*0.98 + ")")
+          .select(".domain").remove()
+      // Customization                                                                                                                                                                                                 
+      SVG.selectAll(".markers")//.attr("stroke", "red")
+      .attr("transform", "translate(55,"+CHART_HEIGHT*0.98+")");
+
+
+      SVG.select('.markers').selectAll('.tick').selectAll('text').text(function(d){ var hh=numberWithCommas(d.getFullYear());
+	if (d.getFullYear()>0) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" A.D.";
+                          } else {
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" B.C.";
+                          }
+									   });
+
+*/
+
+//get_shm1();
+      
+  }
+
+  function plot_skynthians(dd,name,col){
+    //console.log(dd);
+    d3.select("."+name.replaceAll(" ","")).remove();
+    //d3.select(".area0").remove();
+//selectAll(".sk_path").append("g").attr("class","sk_path").attr("transform", "translate(200,40)")
+   //G_CHART_AREA.append("path").attr("transform", "translate(200,40)").attr("d", AREA);
+   var SKYNTHIANS = dd;
+/*var x0 = d3.scaleLinear()
+    .domain([0, d3.max(SKYNTHIANS, function(d) { return d.x; })])
+    .range([0, CHART_WIDTH]);
+    var y0 = d3.scaleLinear()
+    .domain([0, d3.max(SKYNTHIANS, function(d) { return d.y; })])
+    .range([CHART_HEIGHT, 0]);
+
+var xAxis0 = 
+    d3.axisBottom(x0);
+
+var yAxis0 =  d3.axisLeft(y0);*/
+/*var Y_SCALE2 = d3
+      .scaleLinear()
+      .domain([
+        0,
+        d3.max(DATA, function(d) {
+          return  d.total;
+        })
+      ])
+      .rangeRound([CHART_HEIGHT-100, 100]);
+*/
+    var area0 = d3.area()
+    .x(function(d) { return X_SCALE(d.x); })
+    .y0(CHART_HEIGHT)
+    .y1(function(d) { return Y_SCALE(d.y); });
+
+    var div1=d3.select("g.g-chart-area").append("g")
+    .attr("class", name.replaceAll(" ",""));
+    //.attr("transform", "translate(10,20)");
+
+div1.append("path")
+    .datum(SKYNTHIANS)
+    .attr("class", "area0")
+    .attr("d", area0)
+    .attr("fill-opacity",0.1)
+    .attr("fill",col)
+    .attr("transform", "translate(55, 0)");
+   // .style("box-shadow", "7px 7px 7px #eb3136 inset !important");
+
+    div1.append("text")
+    .attr("id","name_"+name.replaceAll(" ",""))
+        .attr("x",  X_SCALE(SKYNTHIANS[0]["x"]))          
+        .attr("y", Y_SCALE(SKYNTHIANS[0]["y"]) + 40)
+        .attr("text-anchor", "start")  
+        .style("font-size", "16px") 
+        //.style("text-decoration", "underline")  
+        .text(name)
+        .attr("transform", "translate(55, 0)")
+        .call(wrap, 30);   
+
+
+
+var width = document.getElementById("name_"+name.replaceAll(" ","")).clientWidth;  
+if (width<0 && width>d3.select("."+name.replaceAll(" ","")).node().getBBox().width) {
+d3.select("#name_"+name.replaceAll(" ","")).remove();
+}
+  }
+  function wrap(text, width) {
+    text.each(function () {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            x = text.attr("x"),
+            y = text.attr("y"),
+            dy = 0, //parseFloat(text.attr("dy")),
+            tspan = text.text(null)
+                        .append("tspan")
+                        .attr("x", x)
+                        .attr("y", y)
+                        .attr("dy", dy + "em");
+        while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan")
+                            .attr("x", x)
+                            .attr("y", y)
+                            .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                            .text(word);
+            }
+        }
+    });
+}
+  // Handle zoom events
+  function zoomed() {
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
+    var t = d3.event.transform;
+
+    // Update x scale domain of main chart using scale of context chart
+    X_SCALE.domain(t.rescaleX(X_SCALE_CONTEXT).domain());
+
+    // Update x axis of main chart using updated scale
+    SVG.select(".x-axis").call(d3.axisBottom(X_SCALE).tickSizeOuter(0));
+SVG.select('.x-axis').selectAll('.tick').selectAll('text').text(function(d){ var hh=numberWithCommas(d.getFullYear());
+/*	if (d.getFullYear()>0) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+                          } else {
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+                          }
+*/
+                          if (d.getFullYear()>0) {
+return numberWithCommas(d.getFullYear()).toString().substring(-4)+" н.е.";
+                          } else if (d.getFullYear()<0){
+return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" до н.е.";
+                          } else{
+                            return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-","")+" ";
+
+                          }
+});
+    // Update paths of main chart
+    G_CHART_AREA.selectAll("path").attr("d", AREA);
+
+    // Update brush to point to same location as zoom
+    G_CONTEXT_AREA.select(".brush").call(
+      BRUSH.move,
+      X_SCALE.range().map(t.invertX, t)
+    );
+
+
+      
+  }
+
+  // Determine coordinates for dynamic legend
+  function calculateLegendDimensions() {
+    // Create dummy text variable to get legend title height
+    let titleHeight;
+    SVG.append("text")
+      .classed("legend-text", true)
+      .text("TEST")
+      .each(function() {
+        titleHeight = this.getBBox().height;
+        this.remove();
+      });
+
+    // Create dummy text variables to get legend text height/widths
+    const textWidths = [];
+    let textHeight;
+    SVG.selectAll(".dummyText")
+      .data(LEG.data)
+      .enter()
+      .append("text")
+      .classed("legend-text", true)
+      .text(function(d) {
+        return d.key;
+      })
+      .each(function() {
+        textHeight = this.getBBox().height;
+        textWidths.push(this.getComputedTextLength());
+        this.remove();
+      });
+
+    // Determine which row each element will sit in and how long each row is
+    const rows = [];
+    const rowSums = [];
+    let rowSum;
+    let row = 0;
+    for (let i = 0; i < textWidths.length; i++) {
+      rowSum = textWidths[i] + LEG.rectWidth + LEG.rectPad + LEG.textPad;
+      rows.push(row);
+      while (
+        rowSum +
+          textWidths[i + 1] +
+          LEG.rectWidth +
+          LEG.rectPad +
+          LEG.textPad <=
+          WIDTH &&
+        i + 1 < textWidths.length
+      ) {
+        i++;
+        rowSum += textWidths[i] + LEG.rectWidth + LEG.rectPad + LEG.textPad;
+        rows.push(row);
+      }
+      rowSums.push(rowSum);
+      row++;
+    }
+
+    // Calculate x and y coordinates for legend elements
+    LEG.elPos = [];
+    for (let i = 0; i < textWidths.length; i++) {
+      LEG.elPos.push({
+        x:
+          i == 0 || rows[i - 1] != rows[i]
+            ? WIDTH / 2 - rowSums[rows[i]] / 2
+            : LEG.elPos[i - 1].x +
+              textWidths[i - 1] +
+              LEG.rectWidth +
+              LEG.rectPad +
+              LEG.textPad,
+        y: titleHeight + LEG.titlePad + rows[i] * (textHeight + LEG.rowPad)
+      });
+    }
+
+    // Set legend height
+    LEG.height = LEG.elPos[LEG.elPos.length - 1].y + textHeight + LEG.rowPad;
+  }
+
+  // Draw legend elements using provided data
+  function drawLegend() {
+    // Append/update legend group and save reference
+    SVG.selectAll(".g-legend")
+      .data([LEG.title])
+      .enter()
+      .append("g")
+      .classed("g-legend", true);
+
+    LEG.groupSelection = SVG.select(".g-legend");
+
+    // Create legend title
+    LEG.titleDataJoin = LEG.groupSelection
+      .selectAll(".legend-title")
+      .data([LEG.title]);
+
+    LEG.titleDataJoin
+      .enter()
+      .append("text")
+      .classed("legend-title", true)
+      .text(function(d) {
+        return d;
+      })
+      .merge(LEG.titleDataJoin)
+      .attr("transform", "translate(" + WIDTH / 2 + ", 0)");
+
+    // Create legend rects
+    LEG.rectsDataJoin = LEG.groupSelection
+      .selectAll(".legend-rect")
+      .data(LEG.data, function(d) {
+        return d.id;
+      });
+
+    LEG.rectsDataJoin
+      .enter()
+      .append("rect")
+      .classed("legend-rect", true)
+      .attr("width", LEG.rectWidth)
+      .attr("height", LEG.rectWidth)
+      .attr("fill", function(d) {
+        return "url(#" + d.id + "-gradient)";
+      })
+	 // .style("fill-opacity",0.5)
+      .attr("stroke", function(d) {
+          return GRAD.stroke[d.key]
+          ? GRAD.stroke[d.key]
+          : GRAD.strokeScale(d.key);
+      })
+      .merge(LEG.rectsDataJoin)
+      .attr("x", function(d, i) {
+        return LEG.elPos[i].x;
+      })
+      .attr("y", function(d, i) {
+        return LEG.elPos[i].y;
+      });
+
+    // Create legend text
+    LEG.textsDataJoin = LEG.groupSelection
+      .selectAll(".legend-text")
+      .data(LEG.data, function(d) {
+        return d.id;
+      });
+
+    LEG.textsDataJoin
+      .enter()
+      .append("text")
+      .classed("legend-text", true)
+      .text(function(d) {
+        return d.key;
+      })
+      .merge(LEG.textsDataJoin)
+      .attr("x", function(d, i) {
+        return LEG.elPos[i].x + LEG.rectWidth + LEG.rectPad;
+      })
+      .attr("y", function(d, i) {
+        return LEG.elPos[i].y + LEG.rectWidth / 2;
+      });
+
+    // Position legend
+    LEG.groupSelection.attr("transform", function() {
+      return "translate(0, " + (HEIGHT - LEG.height) + ")";
+    });
+  }
+
+  // Update legend on data change
+  function updateLegend() {
+    // Update legend rects
+    LEG.rectsDataJoin = LEG.groupSelection
+      .selectAll(".legend-rect")
+      .data(LEG.data, function(d) {
+        return d.id;
+      });
+
+    LEG.rectsDataJoin
+      .transition()
+      .duration(TRANS_TIME)
+      .attr("x", function(d, i) {
+        return LEG.elPos[i].x;
+      })
+      .attr("y", function(d, i) {
+        return LEG.elPos[i].y;
+      })
+      .style("opacity", 1);
+
+    LEG.rectsDataJoin
+      .enter()
+      .append("rect")
+      .classed("legend-rect", true)
+      .attr("width", LEG.rectWidth)
+      .attr("height", LEG.rectWidth)
+      .attr("fill", function(d) {
+        return "url(#" + d.id + "-gradient)";
+      })
+      .attr("stroke", function(d) {
+        return GRAD.stroke[d.key]
+          ? GRAD.stroke[d.key]
+          : GRAD.strokeScale(d.key);
+      })
+      .attr("x", function(d, i) {
+        return LEG.elPos[i].x;
+      })
+      .attr("y", function(d, i) {
+        return LEG.elPos[i].y;
+      })
+      .style("opacity", 0)
+      .transition()
+      .duration(TRANS_TIME)
+      .style("opacity", 1);
+
+    LEG.rectsDataJoin
+      .exit()
+      .transition()
+      .duration(TRANS_TIME)
+      .style("opacity", 0)
+      .remove();
+
+    // Update legend text
+    LEG.textsDataJoin = LEG.groupSelection
+      .selectAll(".legend-text")
+      .data(LEG.data, function(d) {
+        return d.id;
+      });
+
+    LEG.textsDataJoin
+      .transition()
+      .duration(TRANS_TIME)
+      .attr("x", function(d, i) {
+        return LEG.elPos[i].x + LEG.rectWidth + LEG.rectPad;
+      })
+      .attr("y", function(d, i) {
+        return LEG.elPos[i].y + LEG.rectWidth / 2;
+      })
+      .style("opacity", 1);
+
+    LEG.textsDataJoin
+      .enter()
+      .append("text")
+      .classed("legend-text", true)
+      .text(function(d) {
+        return d.key;
+      })
+      .attr("x", function(d, i) {
+        return LEG.elPos[i].x + LEG.rectWidth + LEG.rectPad;
+      })
+      .attr("y", function(d, i) {
+        return LEG.elPos[i].y + LEG.rectWidth / 2;
+      })
+      .style("opacity", 0)
+      .transition()
+      .duration(TRANS_TIME)
+      .style("opacity", 1);
+
+    LEG.textsDataJoin
+      .exit()
+      .transition()
+      .duration(TRANS_TIME)
+      .style("opacity", 0)
+      .remove();
+
+    // Update legend position
+    LEG.groupSelection
+      .transition()
+      .duration(TRANS_TIME)
+      .attr("transform", function() {
+        return "translate(0, " + (HEIGHT - LEG.height) + ")";
+      });
+  }
+
+  // Create/update gradient definitions
+  function defineGradients() {
+    GRAD.gradsDataJoin = GRAD.defsSelection
+      .selectAll(".gradient")
+      .data(GRAD.data, function(d) {
+        return d.id;
+      });
+
+    GRAD.gradsDataJoin
+      .enter()
+      .append("linearGradient")
+      .classed("gradient", true)
+      .attr("id", function(d) {
+        return d.id + "-gradient";
+      })
+      .attr("x1", "0%")
+      .attr("x2", "100%")
+      .attr("y1", "50%")
+      .attr("y2", "50%")
+      .each(function(d) {
+        // Append color stops
+        d3.select(this)
+          .append("stop")
+          .attr("class", "start")
+          .attr("offset", "0%")
+          .attr("stop-color", function() {
+            return GRAD.fill[d.key] ? GRAD.fill[d.key] : GRAD.fillScale(d.key);
+          })
+          .attr("stop-opacity", 1);
+
+        d3.select(this)
+          .append("stop")
+          .attr("class", "end")
+          .attr("offset", "100%")
+          .attr("stop-color", function() {
+            return GRAD.fill[d.key] ? GRAD.fill[d.key] : GRAD.fillScale(d.key);
+          })
+          .attr("stop-opacity", 0.7);
+      });
+  }
+
+  // Get neighbor (previous or next) element
+  function getNeighborElement(el, direction, condition) {
+    if (direction) {
+      // If direction given, select element in given direction
+      // Select first neighbor in given direction
+      let neighbor = el[direction];
+
+      // If condition passed, iterate until condition false
+      if (condition) {
+        while (neighbor && condition(neighbor)) {
+          neighbor = neighbor[direction];
+        }
+      }
+
+      return { el: neighbor, dir: direction };
+    } else {
+      // Otherwise try previous, else next
+      const prev = getNeighborElement(el, "previousElementSibling", condition);
+      const next = getNeighborElement(el, "nextElementSibling", condition);
+      return prev.el ? prev : next;
+    }
+			}
+
+      
+			});
+      
+	});
+  draw_map();
+//draw_circles(groupedData_herm,groupedData_shm,herm_data,shm_data);
+});	
+});	
+});
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.3/js/foundation.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/motion-ui/1.2.3/motion-ui.min.js"></script>
+<script>
+   $(document).ready(function() {
+  $(document).foundation();
+  $( "#myModal" ).dialog({
+      autoOpen: true,
+      maxWidth:600,
+      maxHeight: 500,
+      width: 600,
+      height: 500,
+      modal: true,
+      show: {
+        effect: "blind",
+        duration: 1000
+      },
+      hide: {
+        effect: "explode",
+        duration: 1000
+      }
+    });
+
+    $( "#tabs" ).tabs();
+    //get_shm();
+   });
+</script>
+</body>
+</html>
