@@ -188,6 +188,7 @@ var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
                   var numb = +Math.round(+ids["ids"].length / 20);
                   var rest=+ids["ids"].length-(numb*20);
             //  }
+            console.log(numb);
               //var sels="";
               for (var i = 0; i < _.range(numb).length; i++) {
                   htm += "<option value='" + (i+1).toString() + "'> Page #" + (i+1).toString() + " (" + (i * 20+1).toString() + "-" + ((i + 1) * 20).toString() + " Results) </option>";
@@ -238,7 +239,10 @@ var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
                               var str0 = XMLHttpRequest;
                               var text0 = eval('(' + str0["responseText"] + ')');
                               //console.log(text0);
+                              if (text0["img"].indexOf("https://collections.hermitage.ru")>-1) {
+                              } else {
                               htm += "<img id='" + ids["ids"][index].toString() + "'style='max-width: 100px; max-height: 100px;' src='" + text0["img"] + "'>";
+                              }
                               htm += text0["title"];
                               htm += "<br>";
                               //console.log(htm);
@@ -333,8 +337,10 @@ var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
                               var str0 = XMLHttpRequest;
                               var text0 = eval('(' + str0["responseText"] + ')');
                               //console.log(text0);
-
+                              if (text0["img"].indexOf("https://collections.hermitage.ru")>-1) {
+                              } else {
                               htm += "<img id='" + ids["ids"][index].toString() + "'style='max-width: 100px; max-height: 100px;' src='" + text0["img"] + "'>";
+                              }
                               htm += text0["title"];
                               htm += "<br>";
                               //console.log(htm);
@@ -366,7 +372,7 @@ var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
 
             }
 
-
+           // document.getElementById("page").addEventListener("change", getNewPages, false);
   }
 var groupedIDs_herm_dic = {};
   var groupedIDs_shm_dic = {};
@@ -728,9 +734,16 @@ add_resources(ids,tt);
               //console.log(htm);
               //d3.select("#"+ids["key"]).html(htm);
 
+              function getNewPages(e) {
+
+var tt = e.target.value;
+//alert(tt);
+//console.log(ids);
+add_resources(ids,tt);
+}
 
 
-document.getElementById("page").addEventListener("change", getNewPages, false);
+              document.getElementById("page").addEventListener("change", getNewPages, false);
              
           });
 
@@ -2951,6 +2964,7 @@ return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-",""
               //draw_circles(groupedData_herm,groupedData_shm,herm_data,shm_data);
           });
       });
+      
   });
 
 </script>
@@ -2977,7 +2991,8 @@ return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-",""
     });
 
     $( "#tabs" ).tabs();
-    get_shm();
+    //get_shm();
+    draw_circles(groupedData_herm, groupedData_shm, herm_data, shm_data);
    });
 </script>
 </body>
