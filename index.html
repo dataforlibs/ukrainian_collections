@@ -1230,7 +1230,8 @@ add_resources(ids,tt);
                                   var htm = "";
                                   for (var i = 0; i < sheetData.length; i++) {
                                       try {
-                                          htm += "<img style='max-width: 50px; max-height: 50px;' src='" + sheetData[i]["img"] + "'> " + sheetData[i]["title"] + "<hr>";
+                                          //htm += "<img style='max-width: 50px; max-height: 50px;' src='" + sheetData[i]["img"] + "'> " + sheetData[i]["title"] + "<hr>";
+                                          htm += sheetData[i]["title"] + "<hr>";
                                       } catch (e) {
 
                                           htm += sheetData[i]["title"] + "<hr>";
@@ -1284,8 +1285,8 @@ add_resources(ids,tt);
                                   var htm = "";
                                   for (var i = num - 10; i < num; i++) {
                                       try {
-                                          //htm+=sheetData[i]["title"]+"<hr>";
-                                          htm += "<img style='max-width: 50px; max-height: 50px;' src='" + sheetData[i]["img"] + "'> " + sheetData[i]["title"] + "<hr>";
+                                          htm+=sheetData[i]["title"]+"<hr>";
+                                          //htm += "<img style='max-width: 50px; max-height: 50px;' src='" + sheetData[i]["img"] + "'> " + sheetData[i]["title"] + "<hr>";
                                       } catch (e) {
 
                                           htm += sheetData[i]["title"] + "<hr>";
