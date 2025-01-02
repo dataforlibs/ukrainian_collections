@@ -338,10 +338,10 @@ var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
                               var str0 = XMLHttpRequest;
                               var text0 = eval('(' + str0["responseText"] + ')');
                               //console.log(text0);
-                              if (text0["img"].indexOf("https://collections.hermitage.ru")>-1) {
+                             /* if (text0["img"].indexOf("https://collections.hermitage.ru")>-1) {
                               } else {
                               //htm += "<img id='" + ids["ids"][index].toString() + "'style='max-width: 100px; max-height: 100px;' src='" + text0["img"] + "'>";
-                              }
+                              }*/
                               htm += text0["title"];
                               htm += "<br>";
                               //console.log(htm);
@@ -510,6 +510,7 @@ add_resources(ids,tt);
   }
 
   function draw_circles(groupedData_herm, groupedData_shm, herm_data, shm_data) {
+    console.log(herm_data);
       /*groupedData_herm = d3.nest() 
             .key(function (d) { return d.coords; }) 
             .rollup(function(cities) {
