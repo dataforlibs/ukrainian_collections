@@ -189,14 +189,14 @@ H1{
       .style("visibility", "hidden")
       .text("");
 
-      
+
       var ids = {};
   function add_resources(ids,nk0){
     var nk=+nk0;
     console.log(ids,nk);    
 if (nk==0) {
      
-var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
+var htm = "Кількість результатів: " + (ids["ids"].length).toString() + "<br>";
               //// look up in https://whn-analytics.net/pubmed/venn.js-master/examples/pubmed21.php?user=olha to add a drop down menu     
               if (+ids["ids"].length>=20) {
               htm += "<select id='page'>";
@@ -210,11 +210,11 @@ var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
             //console.log(numb);
               //var sels="";
               for (var i = 0; i < _.range(numb+1).length; i++) {
-                  htm += "<option value='" + (i+1).toString() + "'> Page #" + (i+1).toString() + " (" + (i * 20+1).toString() + "-" + ((i + 1) * 20).toString() + " Results) </option>";
+                  htm += "<option value='" + (i+1).toString() + "'> Сторінка #" + (i+1).toString() + " (" + (i * 20+1).toString() + "-" + ((i + 1) * 20).toString() + " Results) </option>";
               }
               if (rest>0) {
 
-                htm += "<option value='" + (numb+1).toString() + "'> Page #" + (numb+1).toString() + " (" + (numb*20+1).toString() + "-" + (numb*20+rest).toString() + " Results) </option>";
+                htm += "<option value='" + (numb+1).toString() + "'> Сторінка #" + (numb+1).toString() + " (" + (numb*20+1).toString() + "-" + (numb*20+rest).toString() + " Results) </option>";
 
               }
 
