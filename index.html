@@ -210,11 +210,11 @@ var htm = "Кількість результатів: " + (ids["ids"].length).to
             //console.log(numb);
               //var sels="";
               for (var i = 0; i < _.range(numb+1).length; i++) {
-                  htm += "<option value='" + (i+1).toString() + "'> Сторінка #" + (i+1).toString() + " (" + (i * 20+1).toString() + "-" + ((i + 1) * 20).toString() + " Results) </option>";
+                  htm += "<option value='" + (i+1).toString() + "'> Сторінка #" + (i+1).toString() + " (" + (i * 20+1).toString() + "-" + ((i + 1) * 20).toString() + " Ресурси) </option>";
               }
               if (rest>0) {
 
-                htm += "<option value='" + (numb+1).toString() + "'> Сторінка #" + (numb+1).toString() + " (" + (numb*20+1).toString() + "-" + (numb*20+rest).toString() + " Results) </option>";
+                htm += "<option value='" + (numb+1).toString() + "'> Сторінка #" + (numb+1).toString() + " (" + (numb*20+1).toString() + "-" + (numb*20+rest).toString() + " Ресурси) </option>";
 
               }
 
