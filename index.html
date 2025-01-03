@@ -1254,10 +1254,10 @@ add_resources(ids,tt);
                               //https://docs.google.com/spreadsheets/d/1CEmCx-ggRZoAxyLOKm2MsatDSYMLsFKEZUCPzNe0W-Y/edit?gid=1858833916#gid=1858833916
                               getSheetData({
                                   // sheetID you can find in the URL of your spreadsheet after "spreadsheet/d/"
-                                  sheetID: "1CEmCx-ggRZoAxyLOKm2MsatDSYMLsFKEZUCPzNe0W-Y",
+                                  sheetID: "17nI6LbQo0Xhbq6fFkjfvZhzyMgaGV4Zl5fFoI7CoH_8",//1CEmCx-ggRZoAxyLOKm2MsatDSYMLsFKEZUCPzNe0W-Y",
                                   // sheetName is the name of the TAB in your spreadsheet (default is "Sheet1") WHERE B like 'Сосуд%'
                                   sheetName: "SHM_final_last",
-                                  query: "SELECT A,B,C,D where AN>=-55 and AN<=2024 order by AN ASC limit 10",
+                                  query: "SELECT A,B,C,D,E where AO>=-55 and AO<=2024 order by AO ASC limit 10",
                                   callback: sheetDataHandler,
                               });
                               //});
