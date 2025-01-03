@@ -171,6 +171,25 @@ H1{
 
 
 <script>
+    var groupedIDs_herm_dic = {};
+  var groupedIDs_shm_dic = {};
+  var groupedData_herm = [];
+  var groupedData_shm = [];
+  var S;
+  let X_SCALE; // Linear time scale for chart area
+  let X_SCALE_2; // Linear time scale for small chart area
+  var projection, json0, h, w;
+  var filts_herm, filts_shm, groupedData_herm, groupedData_shm, herm_data, shm_data, coordinates = [],
+      g, transform,
+      zoom1 = d3.zoom()
+      .scaleExtent([1, 20]);;
+  var tooltip = d3.select("body")
+      .append("div")
+      .style("position", "absolute")
+      .style("visibility", "hidden")
+      .text("");
+
+      
       var ids = {};
   function add_resources(ids,nk0){
     var nk=+nk0;
@@ -375,6 +394,7 @@ var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
 
            // document.getElementById("page").addEventListener("change", getNewPages, false);
   }
+  /*
 var groupedIDs_herm_dic = {};
   var groupedIDs_shm_dic = {};
   var groupedData_herm = [];
@@ -392,6 +412,7 @@ var groupedIDs_herm_dic = {};
       .style("position", "absolute")
       .style("visibility", "hidden")
       .text("");
+      */
   //var transform = d3.event.transform;   
 
   function getNewPages(e) {
@@ -641,7 +662,7 @@ add_resources(ids,tt);
 
       //console.log(coordinates["labels_shm"],groupedData_shm);
       //var data_shm=[];
-      console.log(groupedData_shm);
+      //console.log(groupedData_shm);
       for (var i = 0; i < groupedData_shm.length; i++) {
 
 
