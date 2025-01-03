@@ -325,6 +325,7 @@ var htm = "Кількість результатів: " + (ids["ids"].length).to
                   var nn = ids["ids"].length;
               } else {*/
                   var nn = 20*nk;
+
               //}
               //console.log(nk,nn);
               if (ids["key"] == "tabs-1") {
@@ -333,9 +334,9 @@ var htm = "Кількість результатів: " + (ids["ids"].length).to
                   var ur = "https://dataforlibs.github.io/herm_collection/";
               }
               for (var m = nn; m < nn+20; m++) {
-                //console.log(m);
+                console.log(m);
                   (function(index) {
-                    //console.log(index);
+                    console.log(ur + ids["ids"][index].toString() + ".json");
                     if (typeof ids["ids"][index]!="undefined") {
                       // console.log("https://dataforlibs.github.io/ukrainian_collections/data_shm/"+ids["ids"][index].toString()+".json");
                       $.ajax({
@@ -419,7 +420,7 @@ var groupedIDs_herm_dic = {};
 
 var tt = e.target.value;
 //alert(tt);
-//console.log(ids);
+console.log(tt);
 add_resources(ids,tt);
 }
 
