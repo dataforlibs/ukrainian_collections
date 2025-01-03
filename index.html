@@ -1308,10 +1308,10 @@ add_resources(ids,tt);
                               //SELECT * WHERE B > 250 AND C < date '1960-01-1' AND D = FALSE
                               getSheetData({
                                   // sheetID you can find in the URL of your spreadsheet after "spreadsheet/d/"
-                                  sheetID: "1CEmCx-ggRZoAxyLOKm2MsatDSYMLsFKEZUCPzNe0W-Y",
+                                  sheetID: "17nI6LbQo0Xhbq6fFkjfvZhzyMgaGV4Zl5fFoI7CoH_8",//1CEmCx-ggRZoAxyLOKm2MsatDSYMLsFKEZUCPzNe0W-Y",
                                   // sheetName is the name of the TAB in your spreadsheet (default is "Sheet1") WHERE B like 'Сосуд%'
                                   sheetName: "SHM_final_last",
-                                  query: "SELECT A,B,C,D where AN>" + S.domain()[0].getFullYear().toString() + " and AN<" + S.domain()[1].getFullYear().toString() + " order by AN ASC limit " + num.toString(),
+                                  query: "SELECT A,B,C,D,E where AO>" + S.domain()[0].getFullYear().toString() + " and AO<" + S.domain()[1].getFullYear().toString() + " order by AO ASC limit " + num.toString(),
                                   callback: sheetDataHandler,
                               });
                               //});
