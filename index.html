@@ -188,9 +188,9 @@ var htm = "Number of results: " + (ids["ids"].length).toString() + "<br>";
                   var numb = +Math.round(+ids["ids"].length / 20);
                   var rest=+ids["ids"].length-(numb*20);
             //  }
-            console.log(numb);
+            //console.log(numb);
               //var sels="";
-              for (var i = 0; i < _.range(numb).length; i++) {
+              for (var i = 0; i < _.range(numb+1).length; i++) {
                   htm += "<option value='" + (i+1).toString() + "'> Page #" + (i+1).toString() + " (" + (i * 20+1).toString() + "-" + ((i + 1) * 20).toString() + " Results) </option>";
               }
               if (rest>0) {
@@ -510,7 +510,7 @@ add_resources(ids,tt);
   }
 
   function draw_circles(groupedData_herm, groupedData_shm, herm_data, shm_data) {
-    console.log(herm_data);
+   //console.log(herm_data);
       /*groupedData_herm = d3.nest() 
             .key(function (d) { return d.coords; }) 
             .rollup(function(cities) {
@@ -800,6 +800,7 @@ add_resources(ids,tt);
               });
               //console.log(shm_data);
               d3.csv("Hermitage_final_short.csv").then(function(herm_data0) {
+
                   herm_data = herm_data0.map(function(s) {
                       // s["dates"]=new Date(Number(s["dates"].split(".")[0]),0,1); 
                       var year = Number(s["dates"].split(".")[0]);
@@ -814,7 +815,7 @@ add_resources(ids,tt);
                       return s;
 
                   });
-
+               console.log(herm_data);
 
                   //d3.select("#map").html(JSON.stringify(groupedData_herm)+JSON.stringify(groupedData_shm));
 
