@@ -25,7 +25,8 @@ limitations under the License.
   <!-- Import lodash.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
   <script   src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
+  <link rel="stylesheet" href="files/css/labs.css">
+  <link rel="stylesheet" href="files/css/masonry.css">
 
   <!-- Import utilities  -->
 
@@ -53,7 +54,24 @@ limitations under the License.
     height: 35%;
    
   }
+  #myModal{
 
+    /*visibility:hidden;*/
+  }
+  .loader {
+  border: 3px solid #f3f3f3; /* Light grey */
+  border-top: 3px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  opacity:0;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
   #streamgraph {
     /*margin: 50 50 50 50;*/
     margin:0 1% 0;
@@ -142,15 +160,9 @@ H1{
 
 <div class="small-5 columns">
 
-    <div id="myModal">
-  <!---<br>Ласкаво просимо до колекції "Украдені скарби". Ця колекція створена з ресурсів, зібраних з російських музеїв, які привласнили ресурси, знайдені на території України. Ми зберігаємо мову цих колекцій, оскільки всі поля метаданих (за рідкісним винятком полів, доданих українськими журналістами) були опубліковані російською мовою.
-
-<p>Колекція зберігається в каталозі з інтерактивним просторово-часовим інтерфейсом, який дозволяє користувачам досліджувати місця в різні періоди часу та в різних імперіях. 
-</p> 
-  <p>Налаштуйте маркери масштабування часу, щоб вибрати періоди часу, які вас цікавлять.
-Натисніть будь-яке коло на карті, щоб отримати ресурси про цю локацію. Кола різняться за розміром і пов’язаними з ними документами залежно 
-від діапазону часу, вибраного на часовій шкалі нижче.
-</p>--->
+    <div id="myModal" title="Collage (max - 200, starting from the current page)" style="display:none"> 
+        <div class="masonry">
+        </div>
 </div>
 <div id="tabs">
   <ul>
@@ -217,11 +229,12 @@ H1{
     document.getElementById("tabs-1").innerHTML="";
     document.getElementById("tabs-2").innerHTML="";
     var nk = +nk0;
-    console.log(ids, nk);
+    //console.log(ids, nk);
     if (nk == 0) {
-
-        var htm = "Кількість результатів: " + (ids["ids"].length).toString() + "<br>";
+       
+        var htm = "<div style='width: 100%; overflow: hidden;''><div style='width: 200px; float: left;'>Кількість результатів: " + (ids["ids"].length).toString() + "</div>  <div  style='float: left; width: 150px;''><span id='coll'><button class='button' id='collage'>View Collage</button></div><div  style='float: left; width: 100px;'><div id='loader' class='loader'></div></span></div></div>";
         //// look up in https://whn-analytics.net/pubmed/venn.js-master/examples/pubmed21.php?user=olha to add a drop down menu     
+       
         if (+ids["ids"].length >= 20) {
             if (ids["key"] == "tabs-1") {
             htm += "<select id='page1'>";
@@ -321,10 +334,155 @@ H1{
     if (ids["key"] == "tabs-1") {
        //var ur = "https://dataforlibs.github.io/ukrainian_collections/data_shm_/";
         $('#tabs a[href="#tabs-1"]').trigger('click');
+        $("#collage").show();
     } else {
         //var ur = "https://dataforlibs.github.io/herm_collection/";
         $('#tabs a[href="#tabs-2"]').trigger('click');
+        $("#collage").hide();
     }
+
+
+    $("#myModal").dialog({
+      autoOpen: false,
+      height: 600,
+      width: 600,
+      show: {
+        effect: "blind",
+        duration: 1000
+      },
+      hide: {
+        effect: "explode",
+        duration: 1000
+      },
+      open: function(){
+        $("#loader").show();
+      },
+      close: function(){
+        $(".loader").hide();
+      }
+    });
+function myScript() {
+    document.getElementById("loader").style.opacity=1;
+
+}
+    document.getElementById("collage").addEventListener("click", myScript);
+        $("#collage").on("click",function(event) {
+        
+            document.getElementById("loader").style.opacity=1;
+            event.preventDefault();
+            $("#loader").show();
+
+
+if (ids["key"] == "tabs-1") {
+        var ur = "https://dataforlibs.github.io/ukrainian_collections/data_shm_/";
+       // $('#tabs a[href="#tabs-1"]').trigger('click');
+    } else {
+        var ur = "https://dataforlibs.github.io/herm_collection/";
+       // $('#tabs a[href="#tabs-2"]').trigger('click');
+    }
+    
+    //console.log(nn,$("#page1").val());
+
+    if (document.getElementById("page1") !== null) {
+        var inn=$("#page1").val()*20;
+    if (ids["ids"].length<$("#page1").val()*20+200) {
+        var maxR=ids["ids"].length;
+    } else{
+
+        var maxR=$("#page1").val()*20+200;
+    }
+} else {
+
+var inn=0;
+    if (ids["ids"].length<200) {
+        var maxR=ids["ids"].length;
+    } else{
+
+        var maxR=200;
+    }
+
+}
+
+
+//console.log(inn,maxR);
+var htm = "";
+for (var m = inn; m < maxR; m++) {
+        
+        try{
+        (function(index) {
+            //console.log(ur, index,typeof ids["ids"][index]);
+            if (typeof ids["ids"][index] != "undefined") {
+               // console.log(m,ur,index,ids["ids"][index]);
+                // console.log("https://dataforlibs.github.io/ukrainian_collections/data_shm/"+ids["ids"][index].toString()+".json");
+                $.ajax({
+                    "url": ur + ids["ids"][index].toString() + ".json",
+                    "type": "GET",
+                    //"data": { fields: "items, professions, talents, progression"},
+                    //"dataType":"json",
+                    async: false,
+                    //"contentType": "application/x-www-form-urlencoded;charset=utf-8",
+                    success: function(data_shm) {
+                        //console.log(JSON.parse(data_shm));
+                    },
+                    cache: false,
+
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        // htm+=ids["ids"][index].toString()+" ";
+                        // try{
+                         
+                          //console.log(XMLHttpRequest["responseText"]); 
+                        var str0 = XMLHttpRequest;
+                        var text0 = eval('(' + str0["responseText"] + ')');
+                        //console.log(text0);
+                        if (text0["img"].indexOf("https://collections.hermitage.ru") > -1) {
+
+                        } else {
+                            htm+='<div class="brick"><img width="40" height="40" src="'+text0["img1"]+'" alt="" title=""></div>';
+                            //htm += "<img id='" + ids["ids"][index].toString() + "'style='max-width: 100px; max-height: 100px;' src='" + text0["img1"] + "'>";
+                        }
+                        //htm += text0["title"];
+                       // htm += "<br>";
+                        //console.log(htm);
+                       // if (index == (rr-1)) {
+                        
+                           // htm += "</div>";
+                            
+                        //}
+
+
+
+
+                        //d3.select("#pages").html(sels);
+                        //console.log(sels);
+                        /*  } catch(error){
+                            console.log("Error: " +error); 
+
+                        }     */
+                    }
+                });
+            }
+        })(m);
+    } catch(e) {
+
+    }
+
+
+    }
+    d3.select(".masonry").html(htm);
+   
+    //console.log(htm);
+/*
+<div class="brick">
+              <img src="files/images/cherry-plant.jpg" alt="Cherry plant" title="Cherry plant">
+            </div>
+
+*/
+           // $('#myModal').dialog('open');
+           $("#myModal").dialog("open");
+          // $(".loader").hide();
+          // return false;
+}); //close click
+   
 }
 
 
@@ -480,6 +638,8 @@ function getNewPages(e) {
     //alert(tt);
    
     add_resources(ids, tt);
+    //$(".loader").hide();
+
    
 }
 
@@ -833,10 +993,16 @@ if (ids["key"] == "tabs-1") {
 add_resources2(ids, tt);
 }
 if (ids["key"] == "tabs-1") {
+    if (document.getElementById("page1") !== null) {
              document.getElementById("page1").addEventListener("change", getNewPages2, false);
+    }
 } else {
+    if (document.getElementById("page2") !== null) {
              document.getElementById("page2").addEventListener("change", getNewPages2, false);
 }
+}
+
+
         });
 
    
@@ -3053,23 +3219,7 @@ return numberWithCommas(d.getFullYear()).toString().substring(-4).replace("-",""
 <script>
     $(document).ready(function() {
         $(document).foundation();
-       /* $("#myModal").dialog({
-            autoOpen: true,
-            maxWidth: 600,
-            maxHeight: 500,
-            width: 600,
-            height: 500,
-            modal: true,
-            show: {
-                effect: "blind",
-                duration: 1000
-            },
-            hide: {
-                effect: "explode",
-                duration: 1000
-            }
-        });*/
-
+       
         $("#tabs").tabs();
         //get_shm();
         draw_circles(groupedData_herm, groupedData_shm, herm_data, shm_data);
